@@ -1,0 +1,14 @@
+use database MEDICAL_CLAIMS_COST;
+use schema PATIENTS_CLAIMS_COST;
+
+
+select * from claims_details;
+
+select count(desynpuf_id) as count_mcid,count(distinct(desynpuf_id)) as distinct_mcid from claims_details;
+
+CREATE OR REPLACE TABLE CLAIMS_DETAILS AS
+SELECT * FROM CLAIMS_DETAILS_COPY;
+
+ALTER TABLE CLAIMS_DETAILS DROP COLUMN CLM_ID,CLM_FROM_DT,CLM_THRU_DT,CLM_PMT_AMT;
+
+
