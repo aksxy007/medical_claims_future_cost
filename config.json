@@ -1,0 +1,34 @@
+{
+    "input_folder": "input",
+    "output_folder": "output",
+    "input_table_name": "MDL_CLM_TRAINING_20090401",
+    "oot_table_name": "MDL_CLM_OOT_20090401",
+    "target_column": "FUTURE_COST",
+    "task_type":"regression",
+    "snowflake_connection": {
+        "account": "HDQWYFS-JW43057",
+        "user": "ATUL07",
+        "password": "Atul@2002",
+        "warehouse": "COMPUTE_WH",
+        "database": "MEDICAL_CLAIMS_COST",
+        "schema": "PATIENTS_CLAIMS_COST"
+    },
+    "data_preparation": {
+        "fillna": "N",
+        "fill_value": "mean",
+        "dropna": "N",
+        "standardize": "Y",
+        "label_encoding": "N", 
+        "categorical_columns": []
+    },
+    "feature_exploration": {
+        "enabled": "Y",
+        "model_type": "random_forest",
+        "task_type":"regression",
+        "feature_selection": {
+            "top_n": 10,
+            "model_for_selection": "random_forest"
+        },
+        "feature_imp_plot": "Y"
+    }
+}
