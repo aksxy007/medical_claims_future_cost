@@ -3,6 +3,8 @@ import logging
 from DataPreparation import DataPreparation
 from DataAcquisition import DataAcquisition
 from FeatureExploration import FeatureExploration
+from TrainModels import TrainModels  # Importing the TrainModels class
+from EDA import EDA
 
 # Setting up logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,6 +24,8 @@ class AutoML:
         self.data_acquisition = DataAcquisition(config)  # Initialize DataAcquisition
         self.data_preparation = None
         self.feature_exploration = None
+        self.train_models = None  # Placeholder for TrainModels
+        
 
     def run(self):
         """
@@ -31,37 +35,61 @@ class AutoML:
         """
         try:
             # Step 1: Data Acquisition
-            logger.info("Fetching training and out-of-time data...")
-            training_data = self.data_acquisition.fetch_training_data()  # Fetch training data
-            # oot_data = self.data_acquisition.fetch_oot_data()  # Fetch OOT data (optional)
-            logger.info(f"Training data fetched with {len(training_data)} rows.")
+            # logger.info("Fetching training and out-of-time data...")
+            # training_data = self.data_acquisition.fetch_training_data()  # Fetch training data
+            # logger.info(f"Training data fetched with {len(training_data)} rows.")
+            # logger.info("mcid",training_data[self.config.get("Index")].count())
             
-            # Step 2: Data Preparation
-            logger.info("Starting data preparation...")
-            self.data_preparation = DataPreparation(training_data, self.config, self.config.get('target_column'))
-            self.data_preparation.handle_missing_values()
-            self.data_preparation.standardize_or_normalize()
-            self.data_preparation.encode_categorical_features()
-            # self.data_preparation.save_columns()
-            # self.data_preparation.save_label_encoders(label_mappings)
+            # # Step 2: Data Preparation
+            # logger.info("Starting data preparation...")
+            # self.data_preparation = DataPreparation(training_data, self.config, self.config.get('target_column'))
+            # self.data_preparation.handle_missing_values()
+            # self.data_preparation.standardize_or_normalize()
+            # self.data_preparation.encode_categorical_features()
             
-            # Saving the prepared DataFrame (after handling missing values, encoding, etc.)
-            prepared_df = self.data_preparation.df
-            self.data_preparation.save_df('prepared_data.csv')
-            logger.info("Prepared data saved to temp/prepared_data.csv")
+            
 
-            # Step 3: Feature Exploration
-            if(self.config.get('feature_exploration',{}).get('enabled','N'))=='Y':
-                logger.info("Starting feature exploration...")
-                self.feature_exploration = FeatureExploration(prepared_df, self.config.get('target_column'), self.config)
-                self.feature_exploration.compute_feature_importance()
+            # # Saving the prepared DataFrame (after handling missing values, encoding, etc.)
+            # prepared_df = self.data_preparation.df
+            # logger.info("Starting EDA...")
+            # self.eda = EDA(self.config,prepared_df, self.config.get('target_column'), self.config.get('output_folder','outpur'))
+            
+            # # Perform EDA: Summary statistics, target distribution, correlation heatmap, etc.
+            # self.eda.summary_statistics()
+            # logger.info("stats Done")
+            # self.eda.target_distribution()
+            # logger.info("target dist Done")
+            # self.eda.correlation_heatmap()
+            # logger.info("corr Done")
+            # self.eda.missing_values_analysis()
+            # logger.info("missing val done")
+            # self.eda.outlier_analysis()
+            # logger.info("Outlier done")
+            # # self.eda.pairwise_relationships()
+            # # logger.info("Pair wise donne")
+            # self.eda.target_vs_features()
+            # logger.info("target vs feature done")
+            # self.eda.feature_distribution()
+            # logger.info("Eda Complete")
+            # self.data_preparation.save_df('prepared_data.csv')
+            # logger.info("Prepared data saved to temp/prepared_data.csv")
+
+            # # Step 3: Feature Exploration
+            # if self.config.get('feature_exploration', {}).get('enabled', 'N') == 'Y':
+            #     logger.info("Starting feature exploration...")
+            #     self.feature_exploration = FeatureExploration(prepared_df, self.config.get('target_column'), self.config)
+            #     self.feature_exploration.compute_feature_importance()
                 
-                # Saving the selected features and important columns
-                self.feature_exploration.select_features_based_on_importance(self.feature_exploration.importance_df)
+            #     # Saving the selected features and important columns
+            #     self.feature_exploration.select_features_based_on_importance(self.feature_exploration.importance_df)
 
-                logger.info("Selected features saved to temp/selected_features.csv")
+            #     logger.info("Selected features saved to temp/selected_features.csv")
 
-            # Step 4: Further steps like model training can follow here, using prepared data and selected features.
+            # Step 4: Model Training
+            logger.info("Starting model training...")
+            self.train_models = TrainModels(self.config)  # Initialize the TrainModels class
+            self.train_models.run()  # Execute the model training pipeline
+            logger.info("Model training completed successfully.")
 
         except Exception as e:
             logger.error(f"An error occurred during the AutoML process: {str(e)}")

@@ -4,7 +4,8 @@
     "input_table_name": "MDL_CLM_TRAINING_20090401",
     "oot_table_name": "MDL_CLM_OOT_20090401",
     "target_column": "FUTURE_COST",
-    "task_type":"regression",
+    "Index": "DESYNPUF_ID",
+    "task_type": "regression",
     "snowflake_connection": {
         "account": "HDQWYFS-JW43057",
         "user": "ATUL07",
@@ -14,21 +15,54 @@
         "schema": "PATIENTS_CLAIMS_COST"
     },
     "data_preparation": {
-        "fillna": "N",
+        "fillna": "Y",
         "fill_value": "mean",
         "dropna": "N",
         "standardize": "Y",
-        "label_encoding": "N", 
+        "label_encoding": "N",
         "categorical_columns": []
     },
     "feature_exploration": {
         "enabled": "Y",
         "model_type": "random_forest",
-        "task_type":"regression",
+        "task_type": "regression",
         "feature_selection": {
-            "top_n": 10,
+            "top_n": 55,
             "model_for_selection": "random_forest"
         },
         "feature_imp_plot": "Y"
+    },
+    "cv_enabled": false,
+    "cv_folds": 5,
+    "cumulative_importance_threshold": 0.99,
+    "models": {
+        "linear_regression": {
+            "params": {
+                "fit_intercept": true
+            }
+        },
+        "random_forest": {
+            "params": {
+                "n_estimators": [100, 200],
+                "max_depth": [10, 20, 30],
+                "min_samples_split": [2, 5]
+            },
+            "default":{"n_estimators": 100,
+            "max_depth": 20,
+            "min_samples_split": 2
+        }
+        },
+        "xgboost": {
+            "params": {
+                "n_estimators": [100, 200],
+                "max_depth": [3, 5],
+                "learning_rate": [0.01, 0.1]
+            },
+            "default":{"n_estimators": 100,
+            "max_depth": 5,
+            "learning_rate": 0.1
+             }
+        }
+        
     }
 }

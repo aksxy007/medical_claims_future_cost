@@ -9,6 +9,7 @@ class DataPreparation:
         self.df = df
         self.config = config
         self.target = target
+        self.index_col = self.config.get("Index","")
         self.temp_folder = os.path.join(os.getcwd(), 'temp')  # Save to temp folder
         self.input_folder = self.config.get('input_folder', 'input')  # Folder to save output files
         self.data_preparation_config = self.config.get("data_preparation")
@@ -21,9 +22,11 @@ class DataPreparation:
     def convert_columns_to_float(self):
         """Convert columns containing numeric values stored as strings to float."""
         # Loop through each column
+        print(self.config.get("Index"))
         for col in self.df.columns:
+            
             # Check if the column is of type object (i.e., potentially a string)
-            if self.df[col].dtype == 'object':
+            if self.df[col].dtype == 'object' and col not in [self.target,self.index_col]:
                 # Attempt to convert the column to float, handling errors gracefully
                 try:
                     # Convert to float, errors='coerce' will turn non-convertible values into NaN
@@ -58,18 +61,29 @@ class DataPreparation:
     def handle_missing_values(self):
         """Handle missing values according to configuration."""
         if self.data_preparation_config.get('fillna', 'N') == 'Y':
-            fill_value = self.config.get('fill_value', 'mean')
-            imputer = SimpleImputer(strategy=fill_value)
-            self.df = pd.DataFrame(imputer.fit_transform(self.df), columns=self.df.columns)
+            # fill_value = self.config.get('fill_value', 'mean')
+            # imputer = SimpleImputer(strategy=fill_value)
+            # self.df = pd.DataFrame(imputer.fit_transform(self.df), columns=self.df.columns)
+            self.df.fillna(0, inplace=True)
         elif self.config.get('dropna', 'N') == 'Y':
             self.df.dropna(inplace=True)
 
     def standardize_or_normalize(self):
-        """Standardize or normalize the numerical columns."""
+        """Standardize or normalize the numerical columns excluding the index and target column."""
+        # Get the list of numeric columns excluding the Index and target column
         numeric_cols = self.df.select_dtypes(include=['int64', 'float64']).columns
+
+        # Exclude Index and target columns
+        numeric_cols = [col for col in numeric_cols if col not in [self.config.get("Index", ""), self.target]]
+        
+        print(f"Numeric Columns for Standardization: {numeric_cols}")
+        
         if self.data_preparation_config.get('standardize', 'N') == 'Y':
+            # Standardize the selected numeric columns
             scaler = StandardScaler()
             self.df[numeric_cols] = scaler.fit_transform(self.df[numeric_cols])
+            print("Standardization completed.")
+
 
         
     def encode_categorical_features(self):
