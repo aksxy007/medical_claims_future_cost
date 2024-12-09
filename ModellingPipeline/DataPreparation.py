@@ -17,7 +17,9 @@ class DataPreparation:
         os.makedirs(self.temp_folder, exist_ok=True)
         os.makedirs(self.input_folder, exist_ok=True)
         self.save_columns()
-        self.convert_columns_to_float()
+        if self.data_preparation_config['label_encoding']=='':
+            print("conveerting column dtype")
+            self.convert_columns_to_float()
     
     def convert_columns_to_float(self):
         """Convert columns containing numeric values stored as strings to float."""
@@ -76,8 +78,6 @@ class DataPreparation:
         # Exclude Index and target columns
         numeric_cols = [col for col in numeric_cols if col not in [self.config.get("Index", ""), self.target]]
         
-        print(f"Numeric Columns for Standardization: {numeric_cols}")
-        
         if self.data_preparation_config.get('standardize', 'N') == 'Y':
             # Standardize the selected numeric columns
             scaler = StandardScaler()
@@ -104,7 +104,11 @@ class DataPreparation:
 
         elif encoding_type == 'one_hot' and cat_columns:
             self.df = pd.get_dummies(self.df, columns=cat_columns)
+            # self.save_label_encoders(self.df, 'label_encoders.csv')
             print(f"Performed one-hot encoding for columns: {cat_columns}")
+        
+        else:
+            return
         
         # Save columns info to a text file
         # self.save_columns()

@@ -44,7 +44,8 @@ class FeatureExploration:
     def compute_feature_importance(self):
         """Compute and save feature importance."""
         # Separate target variable from features
-        X = self.df.drop(columns=[self.target,self.index_col])
+        drop_columns = [self.target,self.index_col] if self.index_col not in ["",None] else [self.target]
+        X = self.df.drop(columns=drop_columns)
         y = self.df[self.target]
 
         # Fit the model

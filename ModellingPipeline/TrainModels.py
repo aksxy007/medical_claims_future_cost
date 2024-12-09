@@ -31,10 +31,10 @@ class TrainModels:
         self.train_test_ratio = config.get("train_test_ratio", 0.8)
         self.task_type = config.get("task_type", "regression").lower()
         self.target_column = config.get("target_column", "")
-        self.models_config = config.get("models", {})
-        self.cv_enabled = config.get("cv_enabled", False)
-        self.cv_folds = config.get("cv_folds", 5)
-        self.cumulative_importance_threshold = config.get("cumulative_importance_threshold", 0.95)
+        self.models_config = config.get("build",{}).get("models", {})
+        self.cv_enabled = config.get("build",{}).get("cv_enabled", False)
+        self.cv_folds = config.get("build",{}).get("cv_folds", 5)
+        self.cumulative_importance_threshold = config.get("train",{}).get("cumulative_importance_threshold", 0.95)
         self.logger = self._setup_logger()
         self.evaluation_results = {}
 
@@ -99,21 +99,26 @@ class TrainModels:
         Load the data with selected features and split it into train and test sets.
         """
         try:
-            selected_features_file = os.path.join(
-                self.output_folder,
-                "selected_features_top_{}.csv".format(self.config["feature_exploration"]["feature_selection"]["top_n"]),
-            )
-            selected_features_df = pd.read_csv(selected_features_file)
-            selected_features = selected_features_df["Feature"].tolist()
+            selected_features=[]
+            if self.config.get('feature_exploration').get('enabled')=='Y' or os.path.join(
+                    self.output_folder,
+                    "selected_features_top_{}.csv".format(self.config["feature_exploration"]["feature_selection"]["top_n"]),
+                ):
+                selected_features_file = os.path.join(
+                    self.output_folder,
+                    "selected_features_top_{}.csv".format(self.config["feature_exploration"]["feature_selection"]["top_n"]),
+                )
+                selected_features_df = pd.read_csv(selected_features_file)
+                selected_features = selected_features_df["Feature"].tolist()
 
             prepared_data_file = os.path.join(self.temp_folder, "prepared_data.csv")
             prepared_data = pd.read_csv(prepared_data_file)
-
             if self.target_column not in prepared_data.columns:
                 raise ValueError(f"Target column '{self.target_column}' not found in the prepared dataset.")
 
             selected_columns = selected_features + [self.target_column]
             data = prepared_data[selected_columns]
+            # print(f"Loaded Data has {len(data.columns)} columns")
 
             X = data.drop(columns=[self.target_column])
             y = data[self.target_column]
@@ -255,7 +260,10 @@ class TrainModels:
                 self.logger.info("Saving best model")
                 # Save evaluation results
                 pd.DataFrame(retrained_results).to_csv(os.path.join(self.best_model_folder, "params", "evaluation_results.csv"), index=False)
-                pd.DataFrame(feature_importance_per_model[best_model_name]).to_csv(os.path.join(self.best_model_folder, "params", f"feature_importance_{best_model_name}.csv"))
+                pd.DataFrame(feature_importance_per_model[best_model_name], columns=["feature"]).to_csv(
+                    os.path.join(self.best_model_folder, "params", f"selected_features.csv"),
+                    index=False
+                )
                 self.logger.info("Model training process completed successfully.")
             except ValueError:
                 # In case retrained_results is empty or no valid MSE is found
@@ -272,28 +280,52 @@ class TrainModels:
     def retrain_and_evaluate_model(self, model_name, model, X_train, X_test, y_train, y_test, feature_importance_per_model):
         """
         Retrain a model with selected features, evaluate it, and save it.
+        Handles both regression and classification tasks.
         """
-        if model_name in feature_importance_per_model:
-            filtered_features = feature_importance_per_model[model_name]
-            X_train_filtered = X_train[filtered_features]
-            X_test_filtered = X_test[filtered_features]
-            
-            
-            X_train_filtered.to_csv(os.path.join(self.build_folder,"train_features.csv"), index=False)
-            X_test_filtered.to_csv(os.path.join(self.build_folder,"test_features.csv"), index=False)
-            # Retrain model
-            retrained_model, best_params, _ = self.train_model(model_name, model, X_train_filtered, y_train)
-            print(best_params)
-            predictions = retrained_model.predict(X_test_filtered)
+        try:
+            if model_name in feature_importance_per_model:
+                # Filter features
+                filtered_features = feature_importance_per_model[model_name]
+                X_train_filtered = X_train[filtered_features]
+                X_test_filtered = X_test[filtered_features]
 
-            # Evaluate model
-            metric = mean_squared_error(y_test, predictions) if self.task_type == "regression" else accuracy_score(y_test, predictions)
-            rmse = sqrt(metric)
-            r2 = r2_score(y_test,y_pred=predictions) if self.task_type == "regression" else None
-            
-            # Save the model
-            joblib.dump(retrained_model, os.path.join(self.build_folder, f"{model_name}_model.pkl"))
+                # Save filtered train/test datasets
+                X_train_filtered.to_csv(os.path.join(self.build_folder, "train_features.csv"), index=False)
+                X_test_filtered.to_csv(os.path.join(self.build_folder, "test_features.csv"), index=False)
 
-            return metric,rmse,r2, best_params
+                # Retrain the model
+                retrained_model, best_params, _ = self.train_model(model_name, model, X_train_filtered, y_train)
 
-        return None, None,None,None
+                # Make predictions
+                predictions = retrained_model.predict(X_test_filtered)
+
+                # Save predictions
+                predictions_file = os.path.join(self.build_folder, f"{model_name}_predictions.csv")
+                pd.DataFrame(predictions, columns=["Predictions"]).to_csv(predictions_file, index=False)
+
+                # Calculate metrics
+                if self.task_type == "regression":
+                    metric = mean_squared_error(y_test, predictions)
+                    rmse = sqrt(metric)
+                    r2 = r2_score(y_test, predictions)
+                else:  # Classification
+                    metric = accuracy_score(y_test, predictions)
+                    rmse = None  # Not applicable for classification
+                    r2 = None    # Not applicable for classification
+                    print(f"{model_name}_accuracy: {metric}")
+                    # Optionally save probabilities if the model supports `predict_proba`
+                    if hasattr(retrained_model, "predict_proba"):
+                        probabilities = retrained_model.predict_proba(X_test_filtered)
+                        prob_file = os.path.join(self.build_folder, f"{model_name}_probabilities.csv")
+                        pd.DataFrame(probabilities).to_csv(prob_file, index=False)
+
+                # Save the retrained model
+                model_file = os.path.join(self.build_folder, f"{model_name}_model.pkl")
+                joblib.dump(retrained_model, model_file)
+
+                return metric, rmse, r2, best_params
+
+            return None, None, None, None
+        except Exception as e:
+            self.logger.error(f"Error retraining and evaluating model {model_name}: {e}")
+            raise

@@ -16,7 +16,7 @@ class EDA:
         self.df = df
         self.target = target
         self.output_folder = output_folder
-        self.index_col = self.config.get("Index","")
+        self.index_col = self.config.get("Index",None)
 
         # Create the root output folder
         os.makedirs(self.output_folder, exist_ok=True)
@@ -35,14 +35,20 @@ class EDA:
         os.makedirs(stats_folder, exist_ok=True)
 
         # Save numerical statistics
-        self.df.describe().to_csv(os.path.join(stats_folder, 'numerical_summary.csv'))
+        try:
+            self.df.describe().to_csv(os.path.join(stats_folder, 'numerical_summary.csv'))
+            
+            # Save categorical statistics
+            self.df.describe(include=['object']).to_csv(os.path.join(stats_folder, 'categorical_summary.csv'))
         
-        # Save categorical statistics
-        self.df.describe(include=['object']).to_csv(os.path.join(stats_folder, 'categorical_summary.csv'))
+        except Exception as e:
+            print(f"Error: {e}")
+            print("Continuing task")
 
     def correlation_heatmap(self):
         """Save the correlation heatmap as a plot."""
-        corr = self.df.drop(columns=[self.index_col]).corr()
+        drop_columns = [self.index_col] if self.index_col not in [None,''] else []
+        corr = self.df.drop(columns=drop_columns).corr()
         plt.figure(figsize=(10, 6))
         sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
         plt.title("Correlation Heatmap")
@@ -50,6 +56,7 @@ class EDA:
 
     def target_distribution(self):
         """Save the target distribution plot."""
+        
         plt.figure(figsize=(8, 6))
         if self.df[self.target].dtype in ['int64', 'float64']:
             sns.histplot(self.df[self.target], kde=True, bins=30, color='blue')
