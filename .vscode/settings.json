@@ -1,0 +1,24 @@
+{
+    "sqltools.connections": [
+        {
+            "authenticator": "SNOWFLAKE",
+            "ocspOptions": {
+                "ocspFailOpen": true
+            },
+            "snowflakeOptions": {
+                "clientSessionKeepAlive": true,
+                "clientSessionKeepAliveHeartbeatFrequency": 3600,
+                "schema": "PATIENTS_CLAIMS_COST"
+            },
+            "previewLimit": 50,
+            "driver": "Snowflake",
+            "name": "Medical Claims Cost Predictions",
+            "group": "Medical Claims",
+            "account": "HDQWYFS-JW43057",
+            "username": "ATUL07",
+            "password": "Atul@2002",
+            "database": "MEDICAL_CLAIMS_COST",
+            "warehouse": "COMPUTE_WH"
+        }
+    ]
+}

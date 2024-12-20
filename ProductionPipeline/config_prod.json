@@ -1,0 +1,51 @@
+{
+    "input_folder": "prod_input",
+    "output_folder": "prod_output",
+    "input_table_name": "PROD_CLAIMS_DETAILS",
+    "target_column": "FUTURE_COST",
+    "prediction_table_name":"MDL_CLM_PROD_PRED_INP",
+    "prediction_output_table":"MDL_CLM_PROD_PRED_OP",
+    "Index": "DESYNPUF_ID",
+    "task_type": "regression",
+    "local_file":{
+        "use":false,
+        "train_file_name":"D:/Projects/Healthcare claim predictions/mushrooms.csv",
+        "oot_file_name":""
+    },
+    "snowflake_connection": {
+        "account": "HDQWYFS-JW43057",
+        "user": "ATUL07",
+        "password": "Atul@2002",
+        "warehouse": "COMPUTE_WH",
+        "database": "MEDICAL_CLAIMS_COST",
+        "schema": "PATIENTS_CLAIMS_COST"
+    },
+    "snowflake_queries":{
+        "sequential":true,
+        "queries":[{"1":{
+            "query": "SELECT *,{current_date} AS CUTOFF_DATE FROM {input_table} WHERE CLM_FROM_DT >= {current_date} AND CLM_FROM_DT <= TO_NUMBER(TO_CHAR(DATEADD(DAY, 29, TO_DATE(CAST({current_date} AS STRING), 'YYYYMMDD')),'YYYYMMDD'));",
+            "input_table":"PROD_CLAIMS_DETAILS",
+            "output_table":"MDL_CLM_PROD",
+            "arguments":["current_date"]
+            }
+        }]
+    },
+    "data_preparation": {
+        "enabled":"Y",
+        "fillna": "Y",
+        "fill_value": "0",
+        "dropna": "N",
+        "standardize": "Y",
+        "label_encoding": "",
+        "categorical_columns": ["class","cap-shape","cap-surface","cap-color","bruises","odor","gill-attachment","gill-spacing","gill-size","gill-color","stalk-shape","stalk-root","stalk-surface-above-ring","stalk-surface-below-ring","stalk-color-above-ring","stalk-color-below-ring","veil-type","veil-color","ring-number","ring-type","spore-print-color","habitat","population"]
+    },
+    "eda":{
+        "enabled":"N"
+    },
+    "predict":{
+        "enabled":"Y",
+        "model_path":"D:/Projects/Healthcare claim predictions/ProductionPipeline/model/*.gz",
+        "predict_output_folder":"ProdOutput",
+        "production_output_table":"ProdOutputTable" 
+    }
+}
