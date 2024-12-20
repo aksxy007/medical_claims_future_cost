@@ -6,4 +6,7 @@ output
 *__pycache__
 temp
 mushrooms.csv
-ProductionPipeline
+dataset_prod
+*prod_output
+*prod_input
+.vscode
