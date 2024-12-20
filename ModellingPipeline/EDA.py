@@ -5,16 +5,18 @@ import matplotlib.pyplot as plt
 
 
 class EDA:
-    def __init__(self, df, target, output_folder):
+    def __init__(self,config, df, target, output_folder):
         """
         Parameters:
         - df: DataFrame containing the dataset.
         - target: Target column for analysis.
         - output_folder: Root folder where the analysis artifacts will be saved.
         """
+        self.config = config
         self.df = df
         self.target = target
         self.output_folder = output_folder
+        self.index_col = self.config.get("Index",None)
 
         # Create the root output folder
         os.makedirs(self.output_folder, exist_ok=True)
@@ -33,14 +35,20 @@ class EDA:
         os.makedirs(stats_folder, exist_ok=True)
 
         # Save numerical statistics
-        self.df.describe().to_csv(os.path.join(stats_folder, 'numerical_summary.csv'))
+        try:
+            self.df.describe().to_csv(os.path.join(stats_folder, 'numerical_summary.csv'))
+            
+            # Save categorical statistics
+            self.df.describe(include=['object']).to_csv(os.path.join(stats_folder, 'categorical_summary.csv'))
         
-        # Save categorical statistics
-        self.df.describe(include=['object']).to_csv(os.path.join(stats_folder, 'categorical_summary.csv'))
+        except Exception as e:
+            print(f"Error: {e}")
+            print("Continuing task")
 
     def correlation_heatmap(self):
         """Save the correlation heatmap as a plot."""
-        corr = self.df.corr()
+        drop_columns = [self.index_col] if self.index_col not in [None,''] else []
+        corr = self.df.drop(columns=drop_columns).corr()
         plt.figure(figsize=(10, 6))
         sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
         plt.title("Correlation Heatmap")
@@ -48,6 +56,7 @@ class EDA:
 
     def target_distribution(self):
         """Save the target distribution plot."""
+        
         plt.figure(figsize=(8, 6))
         if self.df[self.target].dtype in ['int64', 'float64']:
             sns.histplot(self.df[self.target], kde=True, bins=30, color='blue')
@@ -97,6 +106,7 @@ class EDA:
         """
         if features is None:
             features = self.df.columns
+        features = [feature for feature in features if feature not in [self.target,self.index_col]]
         pairplot = sns.pairplot(self.df[features], diag_kind='kde', corner=True)
         pairplot.fig.suptitle("Pairwise Relationships Between Features", y=1.02)
         self.save_plot('pairwise_relationships', 'pairwise_relationships.png')
@@ -108,7 +118,7 @@ class EDA:
         - features: List of features to analyze. If None, analyze all features.
         """
         if features is None:
-            features = [col for col in self.df.columns if col != self.target]
+            features = [col for col in self.df.columns if col not in [self.target,self.index_col]]
 
         for feature in features:
             plt.figure(figsize=(8, 6))

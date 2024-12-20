@@ -5,3 +5,7 @@ output
 *./__pycache__
 *__pycache__
 temp
+mushrooms.csv
+dataset_prod
+*prod_output
+*prod_input

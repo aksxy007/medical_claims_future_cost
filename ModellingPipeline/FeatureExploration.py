@@ -16,9 +16,10 @@ class FeatureExploration:
         
         self.target = target
         self.config = config
+        self.index_col = self.config.get("Index","")
         self.model_for_selection = self.config.get('feature_exploration', {}).get('feature_selection', {}).get('model_for_selection', 'random_forest')
         self.model = self._initialize_model()
-        self.output_folder = self.config.get('output_folder', 'output')
+        self.output_folder = os.path.join(self.config.get('output_folder', 'output'),'explore')
         self.importance_df=None
         
         os.makedirs(self.output_folder,exist_ok=True)
@@ -43,7 +44,8 @@ class FeatureExploration:
     def compute_feature_importance(self):
         """Compute and save feature importance."""
         # Separate target variable from features
-        X = self.df.drop(columns=[self.target])
+        drop_columns = [self.target,self.index_col] if self.index_col not in ["",None] else [self.target]
+        X = self.df.drop(columns=drop_columns)
         y = self.df[self.target]
 
         # Fit the model
