@@ -5,6 +5,7 @@ import AuthRouter from "./routes/auth.js";
 import session from "express-session";
 import cookieParser from 'cookie-parser'; 
 import MongoStore from 'connect-mongo';
+import cors from 'cors';
 
 
 const app = express()
@@ -15,6 +16,12 @@ const PORT = process.env.PORT || 8000;
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 app.use(cookieParser())
+
+
+app.use(cors({
+  origin:["http://localhost:3000"],
+  credentials:true
+}))
 
 // Session Management
 app.use(session({

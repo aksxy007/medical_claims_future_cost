@@ -4,7 +4,7 @@ import login from '../controllers/login.js';
 import register  from '../controllers/register.js';
 import { refreshTokenController } from '../controllers/refreshTokenController.js';
 import { logoutController } from '../controllers/logout.js';
-import { authenticate } from '../middleware/authenticate.js';
+import { getUserSession } from '../controllers/sessionsController.js';
 
 const router = express.Router();
 
@@ -18,6 +18,8 @@ router.post('/refresh-token', refreshTokenController);
 
 // Logout Route
 router.post('/logout', logoutController);
+
+router.get("/session",getUserSession);
 
 
 export default router;
