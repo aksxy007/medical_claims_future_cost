@@ -12,3 +12,5 @@ dataset_prod
 *prod_input
 *prod_output
 *.vscode
+*node_modules
+AirflowDags
