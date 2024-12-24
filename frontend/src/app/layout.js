@@ -1,6 +1,7 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import '../globals.css';  // Global styles (e.g., ShadCN CSS or custom styles)
-import { AuthProvider } from '@/hooks/useAuth';
+import './globals.css';  // Global styles (e.g., ShadCN CSS or custom styles)
+import { AuthProvider } from '@/hooks/use-auth';
+
 
 
 export const metadata = {

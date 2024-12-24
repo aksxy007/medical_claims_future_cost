@@ -1,6 +1,8 @@
 import User from "../models/Users.js";
 import bcrypt from 'bcryptjs'
 import {generateAccessToken,generateRefreshToken} from '../utils/token.js'
+import Session from "../models/Session.js";
+
 
 
 const login = async (req,res)=>{
@@ -27,19 +29,27 @@ const login = async (req,res)=>{
         // Generate tokens
         const accessToken = generateAccessToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
-
+    
+        // Set refresh token in a secure cookie
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true, // Prevent JavaScript access
-            secure: process.env.NODE_ENV === 'production', // Secure cookie in production (HTTPS)
-            maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week expiration
-          });
-
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        });
         
+
         req.session.accessToken = accessToken;
+        req.session.user = {
+            id: user._id,
+            email: user.email,
+            username: user.username,
+        };
+      
 
         return res.status(200).json({
         success: true,
         message: 'Login successful',
+        user: req.session.user,
         accessToken,
         refreshToken
         });

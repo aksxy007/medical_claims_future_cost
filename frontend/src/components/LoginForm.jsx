@@ -9,8 +9,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
-import apiClient from "@/lib/apiClient";
-import { useAuth } from "@/hooks/useAuth";
+import apiClient from "@/lib/api-client";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 // Define your form schema using Zod
 const formSchema = z.object({
@@ -23,8 +24,10 @@ const formSchema = z.object({
 
 export const LoginForm = () => {
     const {login} = useAuth()
-
-  const form = useForm({
+    const router = useRouter()
+  
+  
+    const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
@@ -34,11 +37,8 @@ export const LoginForm = () => {
 
   const handleSubmit = async (formData)=>{
     try {
-        console.log(formData)
-        const response = await login(formData)
-        userData = response.data
+        await login(formData)
         console.log("User logged in successfully!")
-        console.log("User Data: ",userData)
     } catch (error) {
         console.error("Error in logging in: ",error)
     }
