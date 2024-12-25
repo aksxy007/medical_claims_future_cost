@@ -12,12 +12,10 @@ export const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     console.log("Protected Route user",user)
 
-    if(loading) return
-
-    if (!user) {
+    if (!loading && !user) {
       router.push("/login"); // If user is not logged in, redirect to login page
     }
-  }, [user]);
+  }, [user,loading]);
 
   if (loading) {
     return (
@@ -27,5 +25,5 @@ export const ProtectedRoute = ({ children }) => {
     );
   }
 
-  return <>{user?children:null}</>;
+  return <>{children}</>;
 };

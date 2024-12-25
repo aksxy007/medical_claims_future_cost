@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "./ui/label";
+import apiClient from "@/lib/api-client";
+import { useRouter } from "next/navigation";
+
 
 // Define your form schema using Zod
 const formSchema = z.object({
@@ -21,6 +24,8 @@ const formSchema = z.object({
 });
 
 export const RegisterForm = () => {
+  const router = useRouter()
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,9 +38,10 @@ export const RegisterForm = () => {
   const handleSubmit = async (formData)=>{
     try {
         const response = await apiClient.post("/auth/register",formData)
-        userData = response.data
-        console.log("User logged in successfully!")
+        const userData = response.data
+        console.log("User registered successfully!")
         console.log("User Data: ",userData)
+        router.push('/dashboard')
     } catch (error) {
         console.error("Error in registration: ",error)
     }

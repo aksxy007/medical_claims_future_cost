@@ -14,9 +14,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AuthProvider>
-          <ProtectedRoute>
+          {/* <ProtectedRoute> */}
           {children}
-          </ProtectedRoute>
+          {/* </ProtectedRoute> */}
           
         </AuthProvider>
         
@@ -24,3 +24,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

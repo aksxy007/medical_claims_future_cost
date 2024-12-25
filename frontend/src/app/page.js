@@ -12,11 +12,11 @@ export default function Home() {
   const { user, loading } = useAuth();  // Get user and loading state from context
   const router = useRouter();  // To redirect the user to the dashboard if logged in
 
-  useEffect(() => {
-    if (!loading && user) {
-      router.push("/dashboard");  // Redirect to dashboard if user is already logged in
-    }
-  }, [loading, user, router]);
+  // useEffect(() => {
+  //   if (!loading && user) {
+  //     router.push("/dashboard");  // Redirect to dashboard if user is already logged in
+  //   }
+  // }, [loading, user, router]);
 
   const isAuthenticatedLogin= user ? "/dashboard":"/login"
   const isAuthenticateRegister = user ? "/dashbaord":"/register"

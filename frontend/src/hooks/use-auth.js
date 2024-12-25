@@ -15,55 +15,50 @@ export const AuthProvider = ({ children }) => {
   const fetchUserSession = async () => {
     try {
       const response = await apiClient.get("/auth/session");
-      console.log("Session fetch response:", response.data);
-
-      if (response.status === 200 && response.data?.user && response.data?.accessToken) {
+      console.log(response)
+      if (response.status === 200) {
         setUser(response.data.user);
         setToken(response.data.accessToken);
-        localStorage.setItem("token", response.data.accessToken);
-      } else {
-        console.warn("Incomplete session response or unauthorized:", response.data);
+        localStorage.setItem("token",response.data.accessToken)
+      }
+      else{
+        setUser(null)
+        setToken(null)
+        router.push("/")
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        console.log("Session expired or unauthorized, redirecting to login.");
         setUser(null);
         setToken(null);
         localStorage.removeItem("token");
+        // router.push("/login");
+      } else {
+        console.error("Error fetching session:", error);
       }
-    } catch (error) {
-      console.error("Error fetching session:", error);
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem("token");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // if (!token) {
-    //   setUser(null); // No token means the user is logged out
-    //   setLoading(false);
-    //   return;
-    // }
-    // console.group("Fetching User Session");
-    fetchUserSession().finally(() => console.groupEnd());
+    // if(!token)
+      fetchUserSession();
   }, []);
 
   const login = async (credentials) => {
-    // Check if the user is already logged in
     if (user) {
       console.log("User is already logged in, redirecting to dashboard...");
-      router.push("/dashboard"); // Redirect to dashboard if user is logged in
+      router.push("/dashboard");
       return;
     }
 
     try {
-      const response = await apiClient.post("/auth/login", credentials); // Login request
+      const response = await apiClient.post("/auth/login", credentials);
       if (response.status === 200) {
         setUser(response.data.user);
         setToken(response.data.accessToken);
         localStorage.setItem("token", response.data.accessToken);
-
-        // After successful login, redirect to dashboard or intended page
-        // const redirectUrl = localStorage.getItem("redirectAfterLogin") || "/dashboard";
         router.push("/dashboard");
       } else {
         console.error("Login failed with status:", response.status);
@@ -82,7 +77,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setToken(null);
         localStorage.removeItem("token");
-        router.push("/"); // Redirect to the home page
+        router.push("/");
       } else {
         console.error("Logout failed with status:", response.status, response.data);
         alert(response.data.message || "Logout failed. Please try again.");

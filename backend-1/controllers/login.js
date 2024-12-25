@@ -34,7 +34,15 @@ const login = async (req,res)=>{
         res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        maxAge: 1000 * 60 *60*24 , // 1 day for refreshToken
+        sameSite: "None"
+        });
+
+        res.cookie('token', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 1000 * 60 *60 , // 1 day for refreshToken
+            sameSite: "None"
         });
         
 

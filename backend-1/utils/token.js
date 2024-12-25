@@ -15,20 +15,28 @@ export const generateRefreshToken = (userId)=>{
 }   
 
 
-export const verifyAccessToken = (token)=>{
+export const verifyAccessToken = (token) => {
     try {
-        return jwt.verify(token,ACCESS_TOKEN_SECRET)
+      return jwt.verify(token, ACCESS_TOKEN_SECRET);
     } catch (error) {
-        console.log("User not autherised!!")
-        return null
+      if (error.name === "TokenExpiredError") {
+        console.log("Access token has expired");
+        throw new Error("TokenExpired");
+      }
+      console.log("Invalid access token");
+      throw new Error("InvalidToken");
     }
-}
-
-export const verifyRefreshToken = (token)=>{
+  };
+  
+  export const verifyRefreshToken = (token) => {
     try {
-        return jwt.sign(token,REFRESH_TOKEN_SECRET)
+      return jwt.verify(token, REFRESH_TOKEN_SECRET);
     } catch (error) {
-        console.error('Refresh token verification failed', err);
-        return null;
+      if (error.name === "TokenExpiredError") {
+        console.log("Refresh token has expired");
+        throw new Error("TokenExpired");
+      }
+      console.log("Invalid refresh token");
+      throw new Error("InvalidToken");
     }
-} 
+  };

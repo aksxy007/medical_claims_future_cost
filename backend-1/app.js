@@ -34,7 +34,7 @@ app.use(
     store: MongoStore.create({
       client:mongoose.connection.getClient(), // Use the existing MongoDB client from mongoose
       collectionName: "sessions", // Custom collection for storing sessions
-      ttl: 60 * 60, // Session expiration time in seconds (1 hour)
+      ttl: 60 * 60 * 1000, // Session expiration time in seconds (1 hour)
       touchAfter: 24 * 3600, // Delay the session update if there are no changes
       autoRemove: "native", // Auto-remove expired sessions from MongoDB
     }),

@@ -14,3 +14,4 @@ dataset_prod
 *.vscode
 *node_modules
 AirflowDags
+*.next
