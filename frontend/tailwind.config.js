@@ -12,7 +12,8 @@ module.exports = {
   			background: 'var(--background)',
   			foreground: 'var(--foreground)',
 			customButton: "#00A550",
-			customBackground:"#0A0A0A"
+			customBackground:"#0A0A0A",
+      customSubBackground:"#171719"
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

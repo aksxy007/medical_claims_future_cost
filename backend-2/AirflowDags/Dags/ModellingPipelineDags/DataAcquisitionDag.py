@@ -27,7 +27,9 @@ def acquire_training_data(**kwargs):
     """
     Task to fetch training data and save it to the output folder.
     """
-    config = load_config()
+    # config = load_config()
+    config = eval(kwargs['dag_run'].conf.get("config"))
+    print('config',config)
     output_folder = os.path.join(BASE_OUTPUT_PATH,config.get('output_folder','output'), 'data')
     os.makedirs(output_folder, exist_ok=True)
     
@@ -48,7 +50,9 @@ def acquire_oot_data(**kwargs):
     """
     Task to fetch OOT data if provided and save it to the output folder.
     """
-    config = load_config()
+    print("args",kwargs['dag_run'])
+    config = kwargs['dag_run'].conf.get("config")
+    config=eval(config)
     oot_table_name = config.get('oot_table_name', None)
     
     if not oot_table_name:
@@ -82,16 +86,21 @@ with DAG(
     catchup=False,
 ) as dag:
     
+    config = '{{dag_run.conf.get("config")}}'
+    print(config)
+    
     # Task 1: Fetch training data
     fetch_training_task = PythonOperator(
         task_id='fetch_training_data',
         python_callable=acquire_training_data,
+        provide_context=True
     )
     
     # Task 2: Fetch OOT data (only if specified)
     fetch_oot_task = PythonOperator(
         task_id='fetch_oot_data',
         python_callable=acquire_oot_data,
+        provide_context=True
     )
 
     # Task dependencies

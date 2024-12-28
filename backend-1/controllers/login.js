@@ -1,7 +1,6 @@
 import User from "../models/Users.js";
 import bcrypt from 'bcryptjs'
 import {generateAccessToken,generateRefreshToken} from '../utils/token.js'
-import Session from "../models/Session.js";
 
 
 
@@ -34,17 +33,9 @@ const login = async (req,res)=>{
         res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 1000 * 60 *60*24 , // 1 day for refreshToken
-        sameSite: "None"
-        });
-
-        res.cookie('token', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 1000 * 60 *60 , // 1 day for refreshToken
-            sameSite: "None"
-        });
-        
+        maxAge: 1000 * 60 *60*24*7 , // 7 day for refreshToken
+        // sameSite: "None"
+        });        
 
         req.session.accessToken = accessToken;
         req.session.user = {

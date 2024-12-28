@@ -26,7 +26,7 @@ def load_config():
 def perform_feature_exploration(**kwargs):
     """Perform feature exploration and save results."""
     # Load configuration
-    config = load_config()
+    config = eval(kwargs['dag_run'].conf.get("config"))
     output_folder = os.path.join(BASE_OUTPUT_PATH,config.get('output_folder'))
     prep_folder = os.path.join(output_folder,"Prep")
     
@@ -66,4 +66,5 @@ with DAG(
     perform_exploration = PythonOperator(
         task_id='perform_feature_exploration',
         python_callable=perform_feature_exploration,
+        provide_context=True
     )

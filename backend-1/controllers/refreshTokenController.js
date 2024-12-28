@@ -1,58 +1,63 @@
-// controllers/refreshToken.js
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/token.js';
 import User from '../models/Users.js';
-import { verifyRefreshToken } from '../utils/token.js';
-import { generateAccessToken } from '../utils/token.js';
 
-export const refreshTokenController = async (req, res) => {
-  const { refreshToken } = req.cookies;  // Retrieve refresh token from cookie
-
-  if (!refreshToken) {
-    return res.status(400).json({ success: false, message: 'No refresh token provided' });
-  }
-
+const refreshToken = async (req, res) => {
   try {
-    // Verify refresh token
-    console.log("Refresh Token Called")
-    const decoded = verifyRefreshToken(refreshToken);
+    // Get refresh token from cookies
+    const refreshToken = req.cookies?.refreshToken;
+
+    // If no refresh token is found, log the event and return an error
+    if (!refreshToken) {
+      console.log('No refresh token provided in request');
+      return res.status(403).json({ success: false, message: 'No refresh token provided' });
+    }
+
+    console.log('Received refresh token, attempting to verify it');
+
+    // Verify the refresh token
+    const decoded = verifyRefreshToken(refreshToken);  // Implement verifyRefreshToken function based on your token generation logic
     if (!decoded) {
+      console.log('Invalid or expired refresh token');
       return res.status(403).json({ success: false, message: 'Invalid or expired refresh token' });
     }
-
-    // Generate a new access token
-    const newAccessToken = generateAccessToken(decoded.userId);
-
-    // Store the new access token in the session
-    req.session.accessToken = newAccessToken;
-
-    res.cookie("token", newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use HTTPS in production
-      sameSite: "None", // Adjust based on your requirements
-      maxAge:  60*60 * 1000, // 1 hour
-    });
-
     const userId = decoded.userId
-    const user = await User.findById({userId})
+    console.log(`Refresh token verified successfully, user ID: ${userId}`);
 
-    if(!user){
-        console.log(`User not found: ${user}`);
-        return res.status(400).json({ success: false, message: 'User not found' });
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      console.log(`User not found with ID: ${userId}`);
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    req.session.user = {
-      id: user._id,
-      email: user.email,
-      username: user.username,
-  };
+    console.log(`User found: ${user.email}, generating new tokens`);
 
+    // Generate new access token and refresh token
+    const newAccessToken = generateAccessToken(user._id);
+    // const newRefreshToken = generateRefreshToken(user._id);
 
+    // Set the new refresh token in the cookie
+    // res.cookie('refreshToken', newRefreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   maxAge: 1000 * 60 * 60 * 24 * 7, // 1 day
+    //   // sameSite: "None",
+    // });
+
+    req.session.accessToken = newAccessToken;
+
+    console.log('New tokens generated and refresh token set in cookies');
+
+    // Respond with the new access token and refresh token
     return res.status(200).json({
       success: true,
-      message: 'Access token refreshed successfully',
-      accessToken: newAccessToken
+      message: 'Tokens refreshed successfully',
+      accessToken: newAccessToken,
     });
-  } catch (err) {
-    console.error('Error refreshing token', err);
-    return res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error) {
+    console.error('Error during token refresh:', error);
+    return res.status(500).json({ success: false, message: error.message || 'An error occurred' });
   }
 };
+
+export default refreshToken;

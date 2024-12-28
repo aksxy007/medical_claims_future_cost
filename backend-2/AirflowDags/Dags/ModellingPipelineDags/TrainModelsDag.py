@@ -26,7 +26,7 @@ def train_models_task(**kwargs):
     Task to execute the TrainModels class.
     This will perform the entire model training and selection process.
     """
-    config = load_config()
+    config = eval(kwargs['dag_run'].conf.get('config'))
     trainer = TrainModels(config,base_path=BASE_OUTPUT_PATH)
     trainer.run()
 
@@ -53,4 +53,5 @@ with DAG(
     train_models = PythonOperator(
         task_id='train_models',
         python_callable=train_models_task,
+        provide_context=True
     )

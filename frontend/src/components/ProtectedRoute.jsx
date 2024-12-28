@@ -19,7 +19,7 @@ export const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="bg-customBackground h-screen w-screen flex justify-center items-center">
+      <div className=" h-screen w-screen flex justify-center items-center">
         <Loader2 scale={20} color="white"/>
       </div>
     );

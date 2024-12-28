@@ -15,8 +15,14 @@ const UserSchema = mongoose.Schema({
     password:{
         type:String,
         required:true
-    }
-})
+    },
+    projects: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Project',
+    }]
+    },
+    { timestamps: true }
+)
 
 const User = mongoose.model('User',UserSchema)
 

@@ -1,7 +1,7 @@
-import { ProtectedRoute } from '@/components/ProtectedRoute';
 import './globals.css';  // Global styles (e.g., ShadCN CSS or custom styles)
 import { AuthProvider } from '@/hooks/use-auth';
-
+import { ThemeProvider } from '@/components/ThemeProvider';
+import {Roboto} from 'next/font/google'
 
 
 export const metadata = {
@@ -9,16 +9,31 @@ export const metadata = {
   description: 'Web UI for the AutoML',
 };
 
+
+const roboto = Roboto({
+  subsets:['latin'],
+  weight:['400','700']
+})
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className={roboto.className}>
+        <ThemeProvider 
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+        >
         <AuthProvider>
           {/* <ProtectedRoute> */}
-          {children}
+            {children}
+         
           {/* </ProtectedRoute> */}
           
         </AuthProvider>
+        </ThemeProvider>
+        
         
       </body>
     </html>

@@ -14,45 +14,38 @@ import os
 from DataAcquisition import DataAcquisition  # Import the DataAcquisition class
 from Scoring import Scoring  # Import your Scoring class
 
-# Define the configuration path
-CONFIG_PATH = '/opt/airflow/modelling_pipeline/config/config.json'
 BASE_OUTPUT_PATH = '/opt/airflow/modelling_pipeline/modelling_output'
-def load_config():
-    """
-    Load the configuration from the config.json file.
-    """
-    with open(CONFIG_PATH, 'r') as config_file:
-        config = json.load(config_file)
-    return config
 
-def acquire_oot_data(config, **kwargs):
+def acquire_oot_data(**kwargs):
     """
     Use DataAcquisition class to fetch OOT data from Snowflake.
     """
+    config = eval(kwargs['dag_run'].conf.get("config"))
     data_acquisition = DataAcquisition(config)
     oot_data = data_acquisition.fetch_oot_data()  # Fetch OOT data
-    oot_data_folder = os.path.join(BASE_OUTPUT_PATH,config.get('output_folder','output'),'Score','data')
-    os.makedirs(oot_data_folder,exist_ok=True)
-    oot_data.to_csv(os.path.join(oot_data_folder,"oot_data.csv"), index=False)  # Save to CSV
+    oot_data_folder = os.path.join(BASE_OUTPUT_PATH, config.get('output_folder', 'output'), 'Score', 'data')
+    os.makedirs(oot_data_folder, exist_ok=True)
+    oot_data.to_csv(os.path.join(oot_data_folder, "oot_data.csv"), index=False)  # Save to CSV
     data_acquisition.close_connection()  # Close Snowflake connection
-    return os.path.join(oot_data_folder,"oot_data.csv")  # Path to the acquired OOT data
+    return os.path.join(oot_data_folder, "oot_data.csv")  # Path to the acquired OOT data
 
-def score_oot_data(oot_data_path, config,**kwargs):
+def score_oot_data(oot_data_path, **kwargs):
     """
     Use the Scoring class to score the OOT data.
     """
     import pandas as pd
     oot_data = pd.read_csv(oot_data_path)
     
+    config = eval(kwargs['dag_run'].conf.get("config"))
+    
     # Create Scoring object and score the data
-    scoring = Scoring(config,BASE_OUTPUT_PATH)
+    scoring = Scoring(config, BASE_OUTPUT_PATH)
     evaluation_results = scoring.score(oot_data)
 
     # Log evaluation results
     for metric, value in evaluation_results.items():
         print(f"{metric}: {value}")
     
-
     return evaluation_results
 
 default_args = {
@@ -69,16 +62,19 @@ with DAG(
     default_args=default_args,
     description='DAG for Scoring Out-Of-Time Data',
     schedule_interval=None,  # Set as needed
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2024, 12, 26),
     catchup=False,
     tags=['scoring_pipeline'],
 ) as dag:
+
+    # Retrieve config from the parent DAG (passed via dag_run.conf)
+    # config = '{{ dag_run.conf.get("config") }}'  # Get the config passed from parent DAG
 
     # Step 1: Acquire the OOT Data from Snowflake using DataAcquisition
     acquire_oot_data_task = PythonOperator(
         task_id='acquire_oot_data',
         python_callable=acquire_oot_data,
-        op_args=[load_config()],  # Pass the config
+        # op_args=[config],  # Pass the config dynamically
         provide_context=True,
     )
 
@@ -86,7 +82,7 @@ with DAG(
     score_task = PythonOperator(
         task_id='score_oot_data',
         python_callable=score_oot_data,
-        op_args=["{{ task_instance.xcom_pull(task_ids='acquire_oot_data') }}", load_config()],
+        op_args=["{{ task_instance.xcom_pull(task_ids='acquire_oot_data') }}"],  # Pass the config dynamically
         provide_context=True,
     )
 

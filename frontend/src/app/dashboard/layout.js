@@ -1,8 +1,10 @@
 "use client"
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { CodeEditorProvider } from "@/hooks/use-code-editor";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardLayout({ children }) {
   return (
@@ -10,7 +12,12 @@ export default function DashboardLayout({ children }) {
       <ProtectedRoute>
       <SidebarProvider>
         <AppSidebar />
-        <main className="w-screen h-screen flex">{children}</main> 
+        <SidebarInset>
+        <CodeEditorProvider>
+          <main>{children} </main>
+        </CodeEditorProvider>
+        
+      </SidebarInset>
       </SidebarProvider>
       </ProtectedRoute>
     </>

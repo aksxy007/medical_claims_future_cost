@@ -2,9 +2,9 @@
 import express from 'express';
 import login from '../controllers/login.js';
 import register  from '../controllers/register.js';
-import { refreshTokenController } from '../controllers/refreshTokenController.js';
-import { logoutController } from '../controllers/logout.js';
-import { getUserSession } from '../controllers/sessionsController.js';
+import refreshToken from '../controllers/refreshTokenController.js';
+import logout from '../controllers/logout.js'
+import checkSession from '../controllers/sessionsController.js';
 
 const router = express.Router();
 
@@ -14,12 +14,10 @@ router.post('/register', register);
 // POST route for user login
 router.post('/login', login);
 
-router.post('/refresh-token', refreshTokenController);
+router.post("/logout",logout)
 
-// Logout Route
-router.post('/logout', logoutController);
+router.post('/refresh-token', refreshToken);
 
-router.get("/session",getUserSession);
-
+router.get("/check-session",checkSession)
 
 export default router;

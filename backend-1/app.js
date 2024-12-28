@@ -2,6 +2,8 @@ import bodyParser from "body-parser";
 import express from "express";
 import connectDB from "./db/mongo_connection.js";
 import AuthRouter from "./routes/auth.js";
+import DefaultConfigRouter from "./routes/configRoute.js"
+import ProjectRouter from "./routes/projects.js"
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import MongoStore from "connect-mongo";
@@ -49,6 +51,8 @@ app.use(
 
 // Add routes
 app.use("/auth", AuthRouter);
+app.use("/config", DefaultConfigRouter);
+app.use("/projects", ProjectRouter);
 
 // Start the server
 app.listen(PORT, () => {

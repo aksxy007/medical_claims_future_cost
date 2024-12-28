@@ -4,20 +4,10 @@ from airflow.operators.python import BranchPythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
 import json
-
-# Load configuration file
-CONFIG_PATH = '/opt/airflow/modelling_pipeline/config/config.json'
-
-def load_config():
-    try:
-        with open(CONFIG_PATH, 'r') as config_file:
-            return json.load(config_file)
-    except Exception as e:
-        raise Exception(f"Failed to load config file: {e}")
-
+import logging
 # Decision function for branching
-def decide_step(step_name, **kwargs):
-    config = load_config()
+def decide_step(step_name, config, **kwargs):
+    config=eval(config)
     step_config = config.get(step_name, {})
     enabled = step_config.get("enabled", "N")
     print(f"Step {step_name} is {'enabled' if enabled == 'Y' else 'disabled'} in the configuration.")
@@ -37,16 +27,25 @@ with DAG(
     default_args=default_args,
     description='Parent DAG to orchestrate the entire pipeline',
     schedule_interval=None,
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2024, 12, 26),
     catchup=False,
     tags=['parent_pipeline'],
 ) as dag:
 
+    # Assume the config is passed dynamically by Backend 2
+    print('{{dag_run.conf}}')
+    config = '{{ dag_run.conf.get("config")}}' # Accessing the config passed by Backend 
+    print("config",config)
+    
+
+    logging.info(f"Config being passed: {config}")
     # Step 1: Trigger Data Acquisition DAG
     trigger_data_acquisition = TriggerDagRunOperator(
         task_id='trigger_data_acquisition',
         trigger_dag_id='data_acquisition_dag',
         wait_for_completion=True,
+        conf={"config": config}
+        # conf=config,  # Pass the user-specific config
     )
 
     # Step 2: Check and trigger Data Preparation DAG
@@ -54,12 +53,13 @@ with DAG(
         task_id='branch_data_preparation',
         python_callable=decide_step,
         trigger_rule='all_done',
-        op_kwargs={'step_name': 'data_preparation'},
+        op_kwargs={'step_name': 'data_preparation', 'config': config},  # Pass config dynamically
     )
     trigger_data_preparation = TriggerDagRunOperator(
         task_id='trigger_data_preparation',
         trigger_dag_id='data_preparation_dag',
         wait_for_completion=True,
+        conf={"config": config}
     )
     skip_data_preparation = DummyOperator(task_id='skip_data_preparation')
 
@@ -68,12 +68,13 @@ with DAG(
         task_id='branch_feature_exploration',
         python_callable=decide_step,
         trigger_rule='all_done',
-        op_kwargs={'step_name': 'feature_exploration'},
+        op_kwargs={'step_name': 'feature_exploration', 'config': config},  # Pass config dynamically
     )
     trigger_feature_exploration = TriggerDagRunOperator(
         task_id='trigger_feature_exploration',
         trigger_dag_id='feature_exploration_dag',
         wait_for_completion=True,
+        conf={"config": config}
     )
     skip_feature_exploration = DummyOperator(task_id='skip_feature_exploration')
 
@@ -82,12 +83,13 @@ with DAG(
         task_id='branch_model_building',
         python_callable=decide_step,
         trigger_rule='all_done',
-        op_kwargs={'step_name': 'build'},
+        op_kwargs={'step_name': 'build', 'config': config},  # Pass config dynamically
     )
     trigger_model_building = TriggerDagRunOperator(
-        task_id='trigger_model_building',
+        task_id='trigger_build',
         trigger_dag_id='build_dag',
         wait_for_completion=True,
+        conf={"config": config}
     )
     skip_model_building = DummyOperator(task_id='skip_build')
 
@@ -96,12 +98,15 @@ with DAG(
         task_id='branch_score',
         python_callable=decide_step,
         trigger_rule='all_done',
-        op_kwargs={'step_name': 'score'},
+        op_kwargs={'step_name': 'build', 'config': config},
+        
     )
     trigger_scoring = TriggerDagRunOperator(
         task_id='trigger_score',
         trigger_dag_id='scoring_dag',
         wait_for_completion=True,
+        conf={"config": config}
+        
     )
     skip_scoring = DummyOperator(task_id='skip_score')
 

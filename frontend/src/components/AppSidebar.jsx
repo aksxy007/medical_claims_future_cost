@@ -1,91 +1,178 @@
+"use client"
+
+import * as React from "react"
 import {
+  AudioWaveform,
   BookOpen,
   Bot,
-  ChevronUp,
-  LogOut,
-  Mail,
+  Command,
+  Frame,
+  GalleryVerticalEnd,
+  Map,
+  PieChart,
   Settings2,
   SquareTerminal,
-  User2,
-} from "lucide-react";
+} from "lucide-react"
 
+import { NavMain } from "@/components/NavCustomMenu"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+  SidebarHeader,
+  SidebarRail,
+} from "@/components/ui/sidebar"
+import { NavUser } from "./SideBarUser"
+import { TeamSwitcher } from "./ModellingTypeSwitch"
+import { useAuth } from "@/hooks/use-auth"
+import { Separator } from "./ui/separator"
 
-import { NavMain } from "./NavCusotmMenu";
-import { SideBarUser } from "./SideBarUser";
-
-// Menu items.
+// This is sample data.
 const data = {
+  teams: [
+    {
+      name: "Modeling Runs",
+      logo: Bot,
+      plan: "Automated Model Training",
+    },
+    {
+      name: "Production Runs",
+      logo: AudioWaveform,
+      plan: "Automate Production Run",
+    }
+  ],
   navMain: [
     {
-      title: "Modelling Pipeline",
-      url: "#",
+      title: "Playground",
       icon: SquareTerminal,
       isActive: true,
       items: [
-            {
-              title: "Project Name 1",
-              items: [
-                {
-                  title: "Project Run Name 1",
-                },
-                {
-                  title: "Project Run Name 2",
-                },
-              ],
-            },
-            {
-              title: "Project Name 2",
-              items: [
-                {
-                  title: "Project Run Name 1",
-                },
-              ],
-        },
-      ],
-    },
-    {
-      title: "Production Pipeline",
-      url: "#",
-      icon: Bot,
-      items: [
         {
-          title: "Deployed Projects",
+          title: "History",
+          url: `/dashboard/History`,
+        },
+        {
+          title: "Starred",
           url: "#",
-          items: [
-            {
-              title: "Deployed Project 1",
-              url: "#",
-            },
-          ],
+        },
+        {
+          title: "Settings",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
         },
       ],
     },
   ],
-};
+}
 
-
-export function AppSidebar() {
+export function AppSidebar({ ...props }) {
+  const {user,token} = useAuth()
 
   return (
-    <Sidebar className="pt-4 h-full text-white flex items-center justify-center bg-customBackground">
-      {/* Sidebar Content */}
+    <Sidebar collapsible="None" {...props}>
+      <SidebarHeader>
+        <TeamSwitcher teams={data.teams}/>
+      </SidebarHeader>
+      <Separator className="my-2"/>
       <SidebarContent>
-      <NavMain items={data.navMain}/>
+        <NavMain />
       </SidebarContent>
-        
-
-      {/* Sidebar Footer */}
-      <SidebarFooter className="flex-shrink-0 p-4 border-t border-gray-700">
-        <SideBarUser/>
+      <Separator className="my-2"/>
+      <SidebarFooter>
+        <NavUser user={user} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
-  );
+  )
 }

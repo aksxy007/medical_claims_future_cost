@@ -28,7 +28,7 @@ def load_config():
 def prepare_data(**kwargs):
     """Main function to prepare data using the DataPreparation class."""
     # Load config and dataset
-    config = load_config()
+    config = eval(kwargs['dag_run'].conf.get("config"))
     output_folder = os.path.join(BASE_OUTPUT_PATH,config['output_folder'], 'data')
     target = config.get('target_column', '')
     prep_folder = os.path.join(BASE_OUTPUT_PATH, config['output_folder'],"Prep")
