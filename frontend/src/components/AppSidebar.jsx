@@ -26,12 +26,13 @@ import { NavUser } from "./SideBarUser"
 import { TeamSwitcher } from "./ModellingTypeSwitch"
 import { useAuth } from "@/hooks/use-auth"
 import { Separator } from "./ui/separator"
+import { ProjectsProvider } from "@/hooks/use-projects"
 
 // This is sample data.
 const data = {
   teams: [
     {
-      name: "Modeling Runs",
+      name: "Modelling Runs",
       logo: Bot,
       plan: "Automated Model Training",
     },
@@ -40,133 +41,20 @@ const data = {
       logo: AudioWaveform,
       plan: "Automate Production Run",
     }
-  ],
-  navMain: [
-    {
-      title: "Playground",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: `/dashboard/History`,
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-      ],
-    },
-  ],
+  ]
 }
 
 export function AppSidebar({ ...props }) {
   const {user,token} = useAuth()
 
   return (
-    <Sidebar collapsible="None" {...props}>
+      <Sidebar collapsible="None" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams}/>
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <Separator className="my-2"/>
       <SidebarContent>
-        <NavMain />
+        <NavMain/>
       </SidebarContent>
       <Separator className="my-2"/>
       <SidebarFooter>

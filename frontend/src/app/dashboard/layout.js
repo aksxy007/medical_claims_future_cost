@@ -5,12 +5,15 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { CodeEditorProvider } from "@/hooks/use-code-editor";
 import { Separator } from "@/components/ui/separator";
+import { ProjectsProvider } from "@/hooks/use-projects";
+
 
 export default function DashboardLayout({ children }) {
   return (
     <>
       <ProtectedRoute>
-      <SidebarProvider>
+        <ProjectsProvider>
+        <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
         <CodeEditorProvider>
@@ -19,6 +22,8 @@ export default function DashboardLayout({ children }) {
         
       </SidebarInset>
       </SidebarProvider>
+        </ProjectsProvider>
+       
       </ProtectedRoute>
     </>
   );

@@ -18,8 +18,16 @@ const ProjectSchema = new mongoose.Schema({
     experiments:[{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Experiment'
-    }]
-}, { timestamp: true });
+    }],
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+}, { timestamps: true });
 
 const Project = mongoose.model("Project",ProjectSchema)
 

@@ -18,19 +18,50 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Plus, PlusCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import apiClient from "@/lib/api-client";
+import {useProjects} from "@/hooks/use-projects";
+import { useRouter } from "next/navigation";
 
 export function AddProjectDialog({
   isDialogOpen,
   setIsDialogOpen,
   pipelines,
-  selectedPipeline,
-  setSelectedPipeline,
   newProjectName,
   setNewProjectName,
-  addNewProject,
+  isNewExperiment,
 }) {
 
+  const {user} = useAuth()
+  const [projectType,setProjectType] = useState(pipelines[0].title)
+  const [newExprimentName,setNewExperimentName] = useState("")
+  const {addNewProject,error,setCurrentPipeline} = useProjects()
+  const router = useRouter()
+
   console.log("isDialogOpenState",isDialogOpen)
+
+  const handleSetProjectType = (value)=>{
+    setProjectType(value)
+    // const projectType = value === "Model Builds"?"Modelling":"Production"
+    // setCurrentPipeline(projectType)
+  }
+
+  const handleAddNewProject = async ()=>{
+      try {
+        await addNewProject(newProjectName,newExprimentName)
+        if(!error){
+          console.log("Added new project/experiment successfully!")
+          setIsDialogOpen(false)
+          router.push(`/dashboard/${newExprimentName}`)
+        }else{
+          console.error("error",error)
+          setIsDialogOpen(false)
+        }
+      } catch (error) {
+        console.error("Error in adding new project",error)
+      }
+  }
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -51,7 +82,7 @@ export function AddProjectDialog({
         </DialogHeader>
         <DialogDescription>Choose a pipeline and add your project name</DialogDescription>
         {/* ShadCN Select for Pipeline Selection */}
-        <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
+        <Select value={projectType} onValueChange={(value)=>handleSetProjectType(value)}>
           <SelectTrigger className="mb-4 w-full">
             <SelectValue placeholder="Select Pipeline" />
           </SelectTrigger>
@@ -73,11 +104,19 @@ export function AddProjectDialog({
           className="mb-4"
         />
 
+        <Input
+          type="text"
+          value={newExprimentName}
+          onChange={(e) => setNewExperimentName(e.target.value)}
+          placeholder="Enter project name"
+          className="mb-4"
+        />
+
         <DialogFooter>
           <Button onClick={() => setIsDialogOpen(false)}>Cancel</Button>
           <Button
             variant="default"
-            onClick={addNewProject}
+            onClick={handleAddNewProject}
             className="bg-customButton"
           >
             Add

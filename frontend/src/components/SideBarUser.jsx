@@ -116,7 +116,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { ModeToggle } from "./ModeToggel"
 
 export function NavUser({
-  user,
+  user
 }) {
   const { isMobile } = useSidebar()
   const {logout} = useAuth()

@@ -31,6 +31,8 @@ export const createExperiment = async (req, res) => {
             return res.status(404).json({ error: "Project not found or unauthorized" });
         }
 
+        const projectType = project.projectType;
+
         console.log(`Project with ID ${projectId} found`);
 
         // Check if the experiment already exists in the project
@@ -64,6 +66,7 @@ export const createExperiment = async (req, res) => {
         return res.status(200).json({
             message: "Experiment created or already exists in the project",
             experiment,
+            projectType
         });
     } catch (error) {
         console.error("Error in createExperiment:", error);

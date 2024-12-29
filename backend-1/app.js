@@ -4,11 +4,13 @@ import connectDB from "./db/mongo_connection.js";
 import AuthRouter from "./routes/auth.js";
 import DefaultConfigRouter from "./routes/configRoute.js"
 import ProjectRouter from "./routes/projects.js"
+import AirlfowRouter from "./routes/airflowRoutes.js"
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import MongoStore from "connect-mongo";
 import cors from "cors";
 import mongoose from "mongoose";
+import rabbitMQService from "./services/rabbitMQservice.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -25,6 +27,8 @@ app.use(
     credentials: true,
   })
 );
+
+
 
 // Connect to MongoDB
 connectDB();
@@ -49,10 +53,24 @@ app.use(
   })
 );
 
+const startApp = async () => {
+  try {
+    await rabbitMQService.connect();  // Connect to RabbitMQ when the app starts
+    await rabbitMQService.createQueue(process.env.RABBITMQ_QUEUE_NAME);  // Create the necessary queues
+    console.log('App is starting...');
+  } catch (error) {
+    console.error('Error starting the app:', error);
+    process.exit(1);  // Exit if there is an issue with connecting to RabbitMQ
+  }
+};
+
+startApp()
+
 // Add routes
 app.use("/auth", AuthRouter);
 app.use("/config", DefaultConfigRouter);
 app.use("/projects", ProjectRouter);
+app.use("/run", AirlfowRouter);
 
 // Start the server
 app.listen(PORT, () => {

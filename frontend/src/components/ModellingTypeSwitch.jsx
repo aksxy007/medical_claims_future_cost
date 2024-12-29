@@ -19,23 +19,32 @@ import {
 } from "@/components/ui/sidebar"
 import { useState } from "react"
 import { AddProjectDialog } from "./AddProjectDialog"
+import apiClient from "@/lib/api-client"
+import { useProjects } from "@/hooks/use-projects"
 
 const pipelines = [
 {
     title:"Model Builds",
-    items:[]
 },{
     title:"Production Runs",
-    items:[]  
 }]
 
 export function TeamSwitcher({
-  teams,
+  teams
 }) {
   const { isMobile } = useSidebar()
   const [activeTeam, setActiveTeam] = useState(teams[0])
   const [isDialogOpen,setIsDialogOpen] = useState(false);
-  const [selectedPipeline,setSelectedPipeline] = useState(pipelines[0].title)
+  const [newProjectName,setNewProjectName] = useState("")
+  const {setCurrentPipeline,selectPipeline} = useProjects()
+
+  const handleActiveTeam  = (team)=>{
+    console.log(team)
+      setActiveTeam(team)
+      const value = team.name === "Modelling Runs"?"Modelling":"Production"
+      setCurrentPipeline(value)
+      console.log("selected Pipeline",selectPipeline)
+  } 
 
   return (
     <SidebarMenu>
@@ -70,7 +79,7 @@ export function TeamSwitcher({
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={()=>{handleActiveTeam(team)}}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
@@ -82,7 +91,7 @@ export function TeamSwitcher({
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2" asChild>
-              <AddProjectDialog isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} pipelines={pipelines} selectedPipeline={selectedPipeline} setSelectedPipeline={setSelectedPipeline}/>
+              <AddProjectDialog isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} pipelines={pipelines} newProjectName={newProjectName} setNewProjectName={setNewProjectName}/>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

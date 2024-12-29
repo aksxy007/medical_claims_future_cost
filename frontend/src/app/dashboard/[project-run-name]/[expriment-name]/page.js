@@ -1,3 +1,5 @@
+"use client"
+
 import CodeEditor from "@/components/CodeEditorPage"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,9 +10,19 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { useAuth } from "@/hooks/use-auth"
+import { usePathname } from "next/navigation"
 
 
 const RunDeatils = ()=> {
+  const pathname  = usePathname()
+  console.log(pathname.split('/'))
+  const projectId= pathname.split('/')[2]
+  const experimentId = pathname.split('/')[3]
+
+  console.log(projectId,experimentId)
+
+
   return (
     <div className="flex w-screenh h-screen">
       <div className="flex m-auto w-full h-screen rounded-md dark:bg-customSubBackground bg-gray-200">
@@ -21,7 +33,7 @@ const RunDeatils = ()=> {
         <TabsTrigger value="logs">Dag Logs</TabsTrigger>
       </TabsList>
       <TabsContent value="codeeditor">
-        <CodeEditor/>
+        <CodeEditor projectId={projectId} experimentId={experimentId}/>
       </TabsContent>
       <TabsContent value="dagflow">
        Dag Flow

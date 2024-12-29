@@ -46,3 +46,8 @@ async def trigger_pipeline(req: Config):
     except Exception as e:
         # Handle any other errors
         raise HTTPException(status_code=500, detail=f"Error triggering pipeline: {str(e)}")
+    
+
+@router.get("/health")
+def healthCheck(req):
+    return {"message":"up and running"}

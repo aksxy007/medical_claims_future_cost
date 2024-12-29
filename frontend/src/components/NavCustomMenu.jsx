@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronRight, Loader2, MoreHorizontal } from "lucide-react";
 
 import {
   Collapsible,
@@ -24,49 +24,50 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Separator } from "@radix-ui/react-dropdown-menu";
+import { Separator } from "./ui/separator";
 import { ScrollArea } from "./ui/scroll-area";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import apiClient from "@/lib/api-client";
-import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useProjects } from "@/hooks/use-projects";
 
 
 
-export function NavMain() {
+export function NavMain({selectedPipeline}) {
+  const {projects,loading,error,deleteProject} = useProjects(selectedPipeline)
 
-  const {user}  = useAuth()
-  const [items,setItems] = useState(null)
+  const router = useRouter()
 
-  const fetchUserProjects = async ()=>{
+  const handleDeleteProject = async (projectId)=>{
     try {
-      const response = await apiClient.get(`/projects/get-user-projects`,{
-        params:{
-          userId:user.id
-        }
-      })
-      console.log(response.data)
-      const data = response.data?.data
-      setItems([...data]);
+      deleteProject(projectId)
+      console.log("Project Deleted Sucessfully!")
+      if(!error){
+        router.back()
+      }
     } catch (error) {
-      console.log("error fetching user data",error)
+      console.error("Error in deleting project",data.error)
     }
   }
 
-  useEffect(()=>{
-    fetchUserProjects()
-  },[])
+  if (loading){
+    return (
+    <div className="flex justify-center items-center">
+      <Loader2 />
+    </div>
+    )
+  }
 
   return (
-    <SidebarGroup className="overflow-hidden">
+    <SidebarGroup className="overflow-hidden" key={projects.length}>
       <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <Separator className="my-1" color="white"/>
       <SidebarMenu className="ml-auto">
-        {items?.map((item) => (
+        {projects.map((item) => (
           <Collapsible
-            key={item.title}
+            key={item.id}
             asChild
-            // defaultOpen={item.isActive}
-            className="group/collapsible"
+            defaultOpen={true}
+            className="group/collapsible max-h-fit"
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
@@ -87,7 +88,7 @@ export function NavMain() {
                       <DropdownMenuItem>
                         <span>Edit Project</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick = {()=>handleDeleteProject(item.id)}>
                         <span>Delete Project</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -96,10 +97,9 @@ export function NavMain() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub className="w-full">
-                  <ScrollArea className="h-screen w-full rounded-md pr-1">
+                  <ScrollArea className="max-h-[200px] w-full rounded-md pr-1">
                     {item.experiments?.map((subItem,index) => (
-                       <SidebarMenuSubItem key={`${subItem.title}-${index}`} className="dark:hover:bg-[#27272A] hover:bg-[#f4f4f5] focus:[#27272A]">
-                       <Separator className="my-2"/>
+                       <SidebarMenuSubItem key={`${subItem.title}-${index}`} className="dark:hover:bg-[#27272A] hover:bg-[#f4f4f5] focus:[#27272A] rounded-sm">
                         <SidebarMenuSubButton
                           className="bg-sidebar-foreground"
                           asChild
@@ -108,6 +108,7 @@ export function NavMain() {
                             <span>{subItem.title}</span>
                           </Link>
                         </SidebarMenuSubButton>
+                        <Separator className="my-1"/>
                       </SidebarMenuSubItem>
                     ))}
                   </ScrollArea>

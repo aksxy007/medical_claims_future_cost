@@ -6,13 +6,15 @@ import apiClient from '@/lib/api-client';
 import { useCodeEditor } from '@/hooks/use-code-editor';
 import { useTheme } from 'next-themes';
 import { Button } from './ui/button';
+import { useAuth } from '@/hooks/use-auth';
 
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
-const CodeEditor= () => {
+const CodeEditor= ({projectId,experimentId}) => {
+  console.log("ExperimentID",experimentId)
   const { editorValue, setEditorValue } = useCodeEditor();
-  const {theme} = useTheme()
-
+  const {theme} = useTheme() 
+  const {user} = useAuth()
   const editorTheme = theme==='dark'?'vs-dark':'vs'
 
   const fetchDefaultConfig = async () => {
@@ -41,7 +43,21 @@ const CodeEditor= () => {
     try {
       const updatedConfig = JSON.parse(editorValue);
       console.log('Updated config:', updatedConfig);
+
+
+      const response = await apiClient.post("/run/trigger-run",{
+        runConfig:JSON.stringify(updatedConfig),
+        userId:user.id,
+        projectId:projectId,
+        experimentId:experimentId
+
+      })
+
+      const data =response.data
+
+      console.log("Trigger run",data)
       // Make your API call to save the config here
+
     } catch (error) {
       console.error('Error parsing JSON:', error);
     }
@@ -75,7 +91,7 @@ const CodeEditor= () => {
             
             />
           </div>
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end mt-2">
             <Button
               type="submit"
 

@@ -47,7 +47,7 @@ export const createProject = async (req, res) => {
             await project.save();
             user.projects.push(project._id)
             await user.save()
-            console.log(`New project created:`, project);
+            console.log(`New project created:`, project._id);
         } else {
             console.log(`Project with name "${projectName}" already exists.`);
         }
@@ -62,24 +62,31 @@ export const createProject = async (req, res) => {
                 name: experimentName,
                 user:userId,
                 project: project._id,
-                status: "pending", // Default status
+                status: "pending",
+                tags:[projectType] // Default status
             });
 
             await experiment.save();
-            console.log(`New experiment created:`, experiment);
+            console.log(`New experiment created:`, experiment._id);
 
             // Add the new experiment to the project's experiments array
             project.experiments.push(experiment._id);
+            
             await project.save();
-            console.log(`Experiment added to project:`, project);
+            console.log(`Experiment added to project:`, project._id);
         } else {
             console.log(`Experiment with name "${experimentName}" already exists in the project.`);
+            experiment.status="pending"
+            
         }
 
+        const projectId = project._id
         // Return success response with experiment data
         return res.status(200).json({
             message: "Experiment created or updated successfully",
             experiment,
+            projectId,
+            projectType
         });
 
     } catch (error) {
@@ -124,16 +131,18 @@ export const deleteProject = async (req, res) => {
         console.log(`Deleted ${experimentDeleteResult.deletedCount} experiments related to project ${projectId}`);
 
         // Delete the project itself
-        await project.remove();
+        await project.deleteOne({_id:projectId});
         console.log(`Project with ID ${projectId} deleted successfully`);
 
+        user.projects.pull(projectId)
+        await user.save()
         // Return success response
         return res.status(200).json({
             message: "Project and related experiments deleted successfully",
         });
     } catch (error) {
         console.error("Error in deleteProject:", error);
-        return res.status(500).json({ error: "Server error" });
+        return res.status(500).json({ error: error });
     }
 };
 
@@ -144,9 +153,10 @@ export const deleteProject = async (req, res) => {
  * @param {object} res - Express response object.
  */
 export const getUserProjects = async (req, res) => {
-    const {userId} = req.query;
+    const {userId,projectType} = req.query;
 
     console.log("userId",userId)
+    console.log("ProjectType",projectType)
     if (!userId) {
         return res.status(400).json({ success: false, message: 'User ID is required' });
     }
@@ -159,7 +169,7 @@ export const getUserProjects = async (req, res) => {
         }
 
         // Fetch the user's projects
-        const projects = await Project.find({ user: userId });
+        const projects = await Project.find({ user: userId, projectType:projectType });
 
         // Prepare the response data structure
         const responseData = [];
@@ -168,25 +178,22 @@ export const getUserProjects = async (req, res) => {
             // Fetch experiments and structure data if projects are found
             for (const project of projects) {
                 // Fetch the experiments related to the current project
-                const experiments = await Experiments.find({ project: project._id });
+                const experiments = await Experiments.find({ project: project._id }).sort({updatedAt:-1});
 
                 // Map experiments to the desired structure
                 const projectData = {
                     title: project.name,
+                    id:project._id,
                     experiments: experiments.map(experiment => ({
                         title: experiment.name,
-                        url: `/dashboard/${experiment.name}`,
+                        url: `/dashboard/${project._id}/${experiment._id}`,
                     })),
                 };
 
                 // Add the project data to the response array
                 responseData.push(projectData);
             }
-        } else {
-            // If no projects are found, return an empty data structure
-            responseData.push({});
-        }
-
+        } 
         // Send the response with the data structure
         return res.status(200).json({ data: responseData });
 

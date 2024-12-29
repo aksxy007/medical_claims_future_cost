@@ -22,14 +22,6 @@ const ExperimentSchema = new mongoose.Schema(
         ref:"Project",
         required:true
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
     logsPath: {
       type: String, // Path to the logs file
     },

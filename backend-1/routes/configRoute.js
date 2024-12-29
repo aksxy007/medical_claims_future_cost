@@ -7,4 +7,5 @@ const router = express.Router()
 
 router.get("/default-config",authenticate,getConfig)
 
+
 export default router;
