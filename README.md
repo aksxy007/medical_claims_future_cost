@@ -5,6 +5,7 @@ TODOS:
 
 1.Add aws s3 storage \
 2.Reacf flow -- visualisation \
+3.Backend-2 changes for reading dataset from s3 and uplaoding results in s3 on the fly...
 3.Logs-- integrated terminal readonly \
 4.logs file store in kafka and aws s3 \
 5.Zip and download results after session delete -- for time being (cost saving)\
