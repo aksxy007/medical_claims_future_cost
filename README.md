@@ -9,7 +9,7 @@ TODOS:
 4.logs file store in kafka and aws s3 \
 5.Zip and download results after session delete -- for time being (cost saving)\
 \
-Add ons
+Add ons\
 2.Endpoints for fetching uploaded data sets \
 3.Add dataset field in experiment schema \
 4.A way to add uploaded dataset in config without user intervention. \
