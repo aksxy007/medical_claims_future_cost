@@ -10,14 +10,41 @@ export const ProjectsProvider = ({children}) => {
     const {user} = useAuth()
   const [selectedPipeline,setSelectedPipeline] = useState("Modelling")
   const [projects, setProjects] = useState([]);
+  const [experiments,setExpriments] = useState([])
+  const [projectId,setProjectId] = useState(null)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 //   console.log("Selected Pipeline",selectedPipeline)
   // Fetch projects
 
-  const setCurrentPipeline =(value)=>{
+  console.log(user)
+  const setCurrentPipeline = (value)=>{
     setSelectedPipeline(()=>value)
   }
+
+  // console.log("ProjectId",projectId)
+
+  const fetchProjectExperiments= async ()=>{
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await apiClient.get(`/projects/experiments/get-project-experiments`, {
+        params: {
+          userId:user.id,
+          projectId: projectId,
+        },
+      });
+      const data = response.data?.data || [];
+      setExpriments(data);
+    }  catch (err) {
+      setError("Failed to fetch projects.");
+      console.error("Error fetching projects:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -43,81 +70,101 @@ export const ProjectsProvider = ({children}) => {
   // Add a new project or experiment
   const addNewProject = async (newProjectName, newExperimentName) => {
     try {
-      // Check if the project already exists
-      const existingProject = projects.find(project => project.title === newProjectName);
-  
-      if (existingProject) {
-        // If the project exists, check if the experiment exists
-        const existingExperiment = existingProject.experiments.find(experiment => experiment.title === newExperimentName);
-  
-        // If the experiment exists, do nothing
-        if (existingExperiment) {
-          console.log("Both project and experiment already exist. Doing nothing.");
-          return; // Exit function early
-        }
-  
-        // If the experiment does not exist, call API to create the experiment
-        const response = await apiClient.post('/projects/create-project', {
-          userId: user.id,
-          projectName: newProjectName, // Use the existing project ID
-          experimentName: newExperimentName,
-          projectType: selectedPipeline,
-        });
-        
-        if(response.status===200){
-            const newExperiment = {
-            title: newExperimentName,
-            url: `/dashboard/${newExperimentName}`,
-            };
-  
-        // Update the projects state to reflect the new experiment
-            setProjects((prevProjects) => {
-            const updatedProjects = prevProjects.map(project =>
-                project.id === existingProject.id
-                ? { ...project, experiments: [...project.experiments, newExperiment] }
-                : project
-            );
-            console.log("Updated project with new experiment:", updatedProjects);
-            return updatedProjects;
-            });
-        }
-        setError(null)
-        return;
-      }
-  
-      // If the project does not exist, call API to create the project and the experiment
-      const response = await apiClient.post('/projects/create-project', {
-        userId: user.id,
-        projectName: newProjectName,
-        projectType: selectedPipeline,
-        experimentName: newExperimentName,
-      });
-  
-      const newProject = {
-        id: response.data?.experiment?.project, // Ensure this matches the project ID from the backend
-        title: newProjectName,
-        experiments: [
-          {
-            title: newExperimentName,
-            url: `/dashboard/${newExperimentName}`,
-          },
-        ],
-      };
-  
-      // Add the new project and experiment
-      setProjects((prevProjects) => {
-        const updatedProjects = [...prevProjects, newProject];
-        console.log("Added new project with experiment:", updatedProjects);
-        return updatedProjects;
-      });
+        setLoading(true);
+        setError(null);
 
-      setError(null)
-  
+        // Check if the project already exists in the current state
+        const existingProject = projects.find(project => project.title === newProjectName);
+        console.log("existingProject",existingProject)
+        if (existingProject) {
+            // If the project exists, fetch its experiments
+            const response = await apiClient.get("/projects/experiments/get-project-experiments", {
+                params: {
+                    userId: user.id,
+                    projectId: existingProject.id,
+                },
+            });
+
+            const existingExperiments = response.data?.data || [];
+            console.log("Existing Experiments",existingExperiments)
+            const existingExperiment = existingExperiments.find(experiment => experiment.title === newExperimentName);
+
+            if (existingExperiment) {
+                console.log("Experiment already exists in the project.");
+                return existingExperiment; // Return the existing experiment
+            }
+
+            // Add a new experiment to the existing project
+            const experimentResponse = await apiClient.post("/projects/create-project", {
+                userId: user.id,
+                projectName: newProjectName,
+                experimentName: newExperimentName,
+                projectType: selectedPipeline,
+            });
+
+            const newExperiment = experimentResponse.data?.experiment;
+            const newExperimentData= {
+              title: newExperiment.name,
+              id: newExperiment._id,
+              projectId: existingProject.id,
+              createdAt: newExperiment.createdAt,
+              lastRun:newExperiment.updatedAt,
+              url: `/dashboard/${existingProject.id}/${newExperiment._id}`,
+          }
+            if (newExperiment) {
+                setExpriments((prevExperiments) => [...prevExperiments,newExperimentData]);
+                console.log("Added new experiment to the existing project.");
+                return newExperimentData;
+            }
+        } else {
+            // If the project does not exist, create both project and experiment
+            const response = await apiClient.post("/projects/create-project", {
+                userId: user.id,
+                projectName: newProjectName,
+                experimentName: newExperimentName,
+                projectType: selectedPipeline,
+            });
+
+            const newProjectId = response.data?.projectId;
+            const newExperiment = response.data?.experiment;
+
+            if (newProjectId && newExperiment) {
+                // Update projects and experiments state
+                setProjects((prevProjects) => [...prevProjects, {
+                    id: newProjectId,
+                    url:"#",
+                    title: newProjectName,
+                }]);
+
+                const newExperimentData=  {
+                  title: newExperiment.name,
+                  id: newExperiment._id,
+                  projectId: newProjectId,
+                  createdAt: newExperiment.createdAt,
+                  lastRun:newExperiment.updatedAt,
+                  url: `/dashboard/${newProjectId}/${newExperiment.name}`,
+              }
+
+                setExpriments((prevExperiments) => [...prevExperiments, {
+                    title: newExperiment.name,
+                    id: newExperiment._id,
+                    projectId: newProjectId,
+                    createdAt: newExperiment.createdAt,
+                    lastRun:newExperiment.updatedAt,
+                    url: `/dashboard/${newProjectId}/${newExperiment.name}`,
+                }]);
+
+                console.log("Created new project and experiment.");
+                return newExperimentData;
+            }
+        }
     } catch (err) {
-      setError('Failed to add new project or experiment.');
-      console.error('Error adding new project/experiment:', err);
+        setError("Failed to add new project or experiment.");
+        console.error("Error adding project/experiment:", err);
+    } finally {
+        setLoading(false);
     }
-  };
+};
   
   
 
@@ -144,17 +191,28 @@ export const ProjectsProvider = ({children}) => {
   // Fetch projects on mount or when dependencies change
   useEffect(() => {
     if (user && user?.id && selectedPipeline) {
+      console.log("Fetch Projects Called")
       fetchProjects();
     }
   }, [user?.id, selectedPipeline]);
+
+  useEffect(() => {
+    if (user && user?.id && projectId) {
+      console.log("Fetch Project Experiments Called")
+      fetchProjectExperiments();
+    }
+  }, [user?.id, projectId]);
 
   return (<ProjectsContext.Provider value={{
     projects,
     loading,
     error,
+    experiments,
+    setProjectId,
     selectedPipeline,
     setCurrentPipeline,
     fetchProjects,
+    fetchProjectExperiments,
     addNewProject,
     deleteProject,
   }}>

@@ -32,8 +32,8 @@ import { useProjects } from "@/hooks/use-projects";
 
 
 
-export function NavMain({selectedPipeline}) {
-  const {projects,loading,error,deleteProject} = useProjects(selectedPipeline)
+export function NavMain() {
+  const {projects ,loading,error,deleteProject} = useProjects()
 
   const router = useRouter()
 

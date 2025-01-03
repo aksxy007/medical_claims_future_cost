@@ -12,7 +12,7 @@ export default {
   			foreground: 'var(--foreground)',
   			customButton: '#00A550',
   			customBackground: '#0A0A0A',
-			customSubBackground:"#171719",
+  			customSubBackground: '#171719',
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',

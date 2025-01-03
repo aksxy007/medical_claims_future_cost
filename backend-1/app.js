@@ -4,6 +4,7 @@ import connectDB from "./db/mongo_connection.js";
 import AuthRouter from "./routes/auth.js";
 import DefaultConfigRouter from "./routes/configRoute.js"
 import ProjectRouter from "./routes/projects.js"
+import ExperimentRouter from "./routes/experiments.js"
 import AirlfowRouter from "./routes/airflowRoutes.js"
 import session from "express-session";
 import cookieParser from "cookie-parser";
@@ -70,6 +71,7 @@ startApp()
 app.use("/auth", AuthRouter);
 app.use("/config", DefaultConfigRouter);
 app.use("/projects", ProjectRouter);
+app.use("/projects/experiments", ExperimentRouter);
 app.use("/run", AirlfowRouter);
 
 // Start the server

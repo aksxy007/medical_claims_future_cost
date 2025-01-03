@@ -45,6 +45,11 @@ const refreshToken = async (req, res) => {
     // });
 
     req.session.accessToken = newAccessToken;
+    req.session.user = {
+      id: user._id,
+      email: user.email,
+      username: user.username,
+    };
 
     console.log('New tokens generated and refresh token set in cookies');
 

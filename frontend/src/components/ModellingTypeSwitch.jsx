@@ -89,10 +89,10 @@ export function TeamSwitcher({
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2" asChild>
-              <AddProjectDialog isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} pipelines={pipelines} newProjectName={newProjectName} setNewProjectName={setNewProjectName}/>
-            </DropdownMenuItem>
+            {/* {/* <DropdownMenuSeparator /> */}
+            {/* <DropdownMenuItem className="gap-2 p-2" asChild> */}
+              {/* <AddProjectDialog isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} pipelines={pipelines} newProjectName={newProjectName} setNewProjectName={setNewProjectName}/> */}
+            {/* </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -22,6 +22,7 @@ const ExperimentSchema = new mongoose.Schema(
         ref:"Project",
         required:true
     },
+    config:{},
     logsPath: {
       type: String, // Path to the logs file
     },

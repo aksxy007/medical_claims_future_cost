@@ -1,52 +1,49 @@
-"use client"
+"use client";
 
-import CodeEditor from "@/components/CodeEditorPage"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { useAuth } from "@/hooks/use-auth"
-import { usePathname } from "next/navigation"
+import CodeEditor from "@/components/CodeEditorPage";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+
+const RunDetails = () => {
+
+  const [tab, setTab] = useState("codeeditor");
+
+  const onTabChange = (value) => {
+    setTab(value);
+  }
+
+  const pathname = usePathname();
+  const projectId = pathname.split("/")[2];
+  const experimentId = pathname.split("/")[3];
 
 
-const RunDeatils = ()=> {
-  const pathname  = usePathname()
-  console.log(pathname.split('/'))
-  const projectId= pathname.split('/')[2]
-  const experimentId = pathname.split('/')[3]
-
-  console.log(projectId,experimentId)
-
+  console.log("Project ID:", projectId, "Experiment ID:", experimentId);
 
   return (
-    <div className="flex w-screenh h-screen">
-      <div className="flex m-auto w-full h-screen rounded-md dark:bg-customSubBackground bg-gray-200">
-      <Tabs defaultValue="codeeditor" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 p-2 h-fit text-black ">
-        <TabsTrigger value="codeeditor">Code Editor</TabsTrigger>
-        <TabsTrigger value="dagflow">Dag Flow</TabsTrigger>
-        <TabsTrigger value="logs">Dag Logs</TabsTrigger>
-      </TabsList>
-      <TabsContent value="codeeditor">
-        <CodeEditor projectId={projectId} experimentId={experimentId}/>
-      </TabsContent>
-      <TabsContent value="dagflow">
-       Dag Flow
-      </TabsContent>
-      <TabsContent value="logs">
-        Logs
-      </TabsContent>
-    </Tabs>
+    <div className="flex w-full h-full justify-center overflow-hidden">
+      <div className="flex w-full h-full">
+        <Tabs defaultValue="codeeditor" value={tab} onValueChange={onTabChange} className="w-full h-full">
+          <TabsList className="grid w-full grid-cols-3 p-2 h-fit text-black">
+            <TabsTrigger value="codeeditor">Code Editor</TabsTrigger>
+            <TabsTrigger value="dagflow">Dag Flow</TabsTrigger>
+            <TabsTrigger value="logs">Dag Logs</TabsTrigger>
+          </TabsList>
+          <TabsContent value="codeeditor" className="h-full relative">
+            <div className="absolute inset-0 flex flex-col h-full w-full">
+              <CodeEditor projectId={projectId} experimentId={experimentId} setTab={onTabChange}/>
+            </div>
+          </TabsContent>
+          <TabsContent value="dagflow" className="h-full">
+            Dag Flow
+          </TabsContent>
+          <TabsContent value="logs" className="h-full">
+            Logs
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
-    </div>
-    
-    
-  )
-}
+  );
+};
 
-export default RunDeatils;
+export default RunDetails;

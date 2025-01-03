@@ -5,7 +5,7 @@ import { getConfig } from "../controllers/configController.js";
 
 const router = express.Router()
 
-router.get("/default-config",authenticate,getConfig)
+router.post("/default-config",authenticate,getConfig)
 
 
 export default router;

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "./ui/label";
 import apiClient from "@/lib/api-client";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 
 // Define your form schema using Zod
@@ -25,6 +26,7 @@ const formSchema = z.object({
 
 export const RegisterForm = () => {
   const router = useRouter()
+  const {showToast} = useToast()
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -41,9 +43,11 @@ export const RegisterForm = () => {
         const userData = response.data
         console.log("User registered successfully!")
         console.log("User Data: ",userData)
+        showToast({message:"Registered Successfully!",type:"success"})
         router.push('/dashboard')
     } catch (error) {
         console.error("Error in registration: ",error)
+        showToast({message:"An Error Occured! Please try again.",type:"error"})
     }
         
   }
@@ -117,7 +121,7 @@ export const RegisterForm = () => {
           />
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full h-10 mt-4 py-3 rounded-md">
+          <Button type="submit" className="w-full h-10 mt-4 py-3 rounded-md  dark:bg-customButton dark:text-white hover:dark:text-black">
             Submit
           </Button>
           <div className=" flex text-sm  mt-4 justify-center items-end">

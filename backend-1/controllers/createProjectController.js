@@ -6,95 +6,61 @@ export const createProject = async (req, res) => {
     const { userId, projectType, projectName, experimentName } = req.body;
 
     try {
-        // Log initial request data
-        console.log("Request received to create or update project:", {
-            userId,
-            projectType,
-            projectName,
-            experimentName,
-        });
-
-        // Check for missing required fields
         if (!userId || !projectType || !projectName || !experimentName) {
-            console.log("Missing required fields in the request body");
-
             return res.status(400).json({ message: "Missing required fields" });
         }
 
-        // Fetch user to check if they exist
         const user = await User.findById(userId);
         if (!user) {
-            console.log(`User with ID ${userId} not found`);
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Log user found
-        console.log(`User with ID ${userId} found:`, user);
-
-        // Check if project already exists
         let project = await Project.findOne({ name: projectName, user: userId });
-        if (!project) {
-            // Create new project if it does not exist
-            console.log(`Project with name "${projectName}" not found. Creating new project...`);
 
+        if (!project) {
+            // Create a new project if it does not exist
             project = new Project({
                 name: projectName,
                 user: userId,
-                projectType: projectType,
+                projectType,
                 experiments: [],
             });
 
             await project.save();
-            user.projects.push(project._id)
-            await user.save()
-            console.log(`New project created:`, project._id);
-        } else {
-            console.log(`Project with name "${projectName}" already exists.`);
+            user.projects.push(project._id);
+            await user.save();
         }
 
-        // Check if experiment already exists in the project
+        // Check if the experiment already exists in the project
         let experiment = await Experiments.findOne({ name: experimentName, project: project._id });
-        if (!experiment) {
-            // Create new experiment if it does not exist
-            console.log(`Experiment with name "${experimentName}" not found in project. Creating new experiment...`);
 
+        if (!experiment) {
+            // Create a new experiment if it does not exist
             experiment = new Experiments({
                 name: experimentName,
-                user:userId,
+                user: userId,
                 project: project._id,
                 status: "pending",
-                tags:[projectType] // Default status
+                tags: [projectType],
             });
 
             await experiment.save();
-            console.log(`New experiment created:`, experiment._id);
-
-            // Add the new experiment to the project's experiments array
             project.experiments.push(experiment._id);
-            
             await project.save();
-            console.log(`Experiment added to project:`, project._id);
-        } else {
-            console.log(`Experiment with name "${experimentName}" already exists in the project.`);
-            experiment.status="pending"
-            
         }
 
-        const projectId = project._id
-        // Return success response with experiment data
         return res.status(200).json({
-            message: "Experiment created or updated successfully",
+            message: "Project and experiment created or updated successfully",
+            projectId: project._id,
             experiment,
-            projectId,
-            projectType
+            projectType,
         });
-
     } catch (error) {
-        // Log error
-        console.error("Error in createOrUpdateExperiment:", error);
-        return res.status(500).json({ error: "Server error" });
+        console.error("Error in createProject:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
+
 
 export const deleteProject = async (req, res) => {
     const { userId, projectId } = req.body;
@@ -152,6 +118,7 @@ export const deleteProject = async (req, res) => {
  * @param {object} req - Express request object.
  * @param {object} res - Express response object.
  */
+
 export const getUserProjects = async (req, res) => {
     const {userId,projectType} = req.query;
 
@@ -178,16 +145,17 @@ export const getUserProjects = async (req, res) => {
             // Fetch experiments and structure data if projects are found
             for (const project of projects) {
                 // Fetch the experiments related to the current project
-                const experiments = await Experiments.find({ project: project._id }).sort({updatedAt:-1});
+                // const experiments = await Experiments.find({ project: project._id }).sort({updatedAt:-1});
 
                 // Map experiments to the desired structure
                 const projectData = {
                     title: project.name,
+                    url:"#",
                     id:project._id,
-                    experiments: experiments.map(experiment => ({
-                        title: experiment.name,
-                        url: `/dashboard/${project._id}/${experiment._id}`,
-                    })),
+                    // items: experiments.map(experiment => ({
+                    //     title: experiment.name,
+                    //     url: `/dashboard/${project._id}/${experiment._id}`,
+                    // })),
                 };
 
                 // Add the project data to the response array
@@ -195,6 +163,7 @@ export const getUserProjects = async (req, res) => {
             }
         } 
         // Send the response with the data structure
+        console.log("Project Data sent!!")
         return res.status(200).json({ data: responseData });
 
     } catch (error) {
@@ -202,4 +171,3 @@ export const getUserProjects = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
-

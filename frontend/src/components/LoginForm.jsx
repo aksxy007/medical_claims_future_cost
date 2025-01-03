@@ -12,6 +12,7 @@ import Link from "next/link";
 import apiClient from "@/lib/api-client";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 // Define your form schema using Zod
 const formSchema = z.object({
@@ -24,9 +25,9 @@ const formSchema = z.object({
 
 export const LoginForm = () => {
     const {login} = useAuth()
-    const router = useRouter()
-  
-  
+    // const router = useRouter()
+    const {showToast} = useToast()
+
     const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,9 +39,10 @@ export const LoginForm = () => {
   const handleSubmit = async (formData)=>{
     try {
         await login(formData)
-        console.log("User logged in successfully!")
+        // showToast({message:"Logged in Successfully!",type:"success"})
     } catch (error) {
         console.error("Error in logging in: ",error)
+        // showToast({message:"Error Logging in!",type:"error"})
     }
         
   }
@@ -94,7 +96,7 @@ export const LoginForm = () => {
           />
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full dark:bg-customButton dark:text-white hover:dark:text-black">
             Submit
           </Button>
           <div className=" flex text-sm mt-4 justify-center items-end ">

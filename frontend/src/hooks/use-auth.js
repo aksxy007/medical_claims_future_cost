@@ -3,6 +3,7 @@
 import { useState, createContext, useEffect, useContext, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api-client";
+import { useToast } from "./use-toast";
 
 const AuthContext = createContext();
 
@@ -11,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const {showToast} = useToast()
 
   // Function to fetch user session
   const fetchUserSession = async () => {
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
       if (response.status === 200) {
         console.log("Session is active. User data:", response.data.user);
-        setUser(response.data.user);
+        setUser(response.data?.user);
         setToken(response.data.accessToken);
       } else {
         console.log("Session expired or user not found. Attempting to refresh token...");
@@ -133,11 +135,11 @@ export const AuthProvider = ({ children }) => {
         setToken(response.data.accessToken);
         router.push("/dashboard");
       } else {
-        alert("Login failed. Please check your credentials.");
+        showToast({message:"Login failed. Please check your credentials.",type:"warning"});
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred during login. Please try again.");
+      showToast({message:"An error occurred during login. Please try again.",type:"error"});
     }
   };
 
@@ -151,11 +153,11 @@ export const AuthProvider = ({ children }) => {
         setToken(null);
         router.push("/");
       } else {
-        alert(response.data.message || "Logout failed. Please try again.");
+        showToast({message:response.data.message || "Logout failed. Please try again.",type:"warning"});
       }
     } catch (error) {
       console.error("Logout error:", error);
-      alert("An error occurred during logout. Please try again.");
+      showToast({message:"An error occurred during logout. Please try again.",type:"error"});
     }
   };
 

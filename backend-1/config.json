@@ -9,7 +9,7 @@
     "train_test_ratio":0.7,
     "local_file":{
         "use":false,
-        "train_file_name":"D:/Projects/Healthcare claim predictions/mushrooms.csv",
+        "train_file_name":"",
         "oot_file_name":""
     },
     "snowflake_connection": {

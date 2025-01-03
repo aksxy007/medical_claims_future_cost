@@ -27,11 +27,17 @@ import { useRouter } from "next/navigation";
 export function AddProjectDialog({
   isDialogOpen,
   setIsDialogOpen,
-  pipelines,
   newProjectName,
-  setNewProjectName,
-  isNewExperiment,
+  setNewProjectName
 }) {
+
+
+  const pipelines = [
+    {
+        title:"Model Builds",
+    },{
+        title:"Production Runs",
+    }]
 
   const {user} = useAuth()
   const [projectType,setProjectType] = useState(pipelines[0].title)
@@ -49,11 +55,12 @@ export function AddProjectDialog({
 
   const handleAddNewProject = async ()=>{
       try {
-        await addNewProject(newProjectName,newExprimentName)
+        const response = await addNewProject(newProjectName,newExprimentName)
         if(!error){
           console.log("Added new project/experiment successfully!")
           setIsDialogOpen(false)
-          router.push(`/dashboard/${newExprimentName}`)
+          console.log(response)
+          router.push(`/dashboard/${response.projectId}/${response.id}`)
         }else{
           console.error("error",error)
           setIsDialogOpen(false)
@@ -65,17 +72,9 @@ export function AddProjectDialog({
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <div
-          className="flex p-2 gap-2 cursor-pointer bg-background dark:hover:bg-[#27272A]"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-            <Plus className="size-4" />
-          </div>
-          <div className="font-medium text-muted-foreground">Add Project</div>
-        </div>
-      </DialogTrigger>
+      {/* <DialogTrigger asChild>
+        
+      </DialogTrigger> */}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Project</DialogTitle>
@@ -117,7 +116,7 @@ export function AddProjectDialog({
           <Button
             variant="default"
             onClick={handleAddNewProject}
-            className="bg-customButton"
+            className="bg-customButton  dark:bg-customButton dark:text-white hover:dark:text-black"
           >
             Add
           </Button>

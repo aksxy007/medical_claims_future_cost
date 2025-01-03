@@ -132,3 +132,72 @@ export const deleteExperiment = async (req, res) => {
         return res.status(500).json({ error: "Server error" });
     }
 };
+
+
+
+/**
+ * Fetch user's projects and their related experiments.
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+export const getUserProjectsExperiments = async (req, res) => {
+    const {userId,projectId} = req.query;
+
+    console.log("userId",userId)
+    console.log("ProjectId",projectId)
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+    }
+
+    try {
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Fetch the user's projects
+        const project = await Project.findOne({ user: userId, _id:projectId });
+        // console.log(project)
+        // Prepare the response data structure
+        let responseData=[];
+
+        if (project) {
+            // Fetch experiments and structure data if projects are found
+
+                // Fetch the experiments related to the current project
+                const experiments = await Experiments.find({ project: project._id }).sort({updatedAt:-1});
+
+                // Map experiments to the desired structure
+                // const projectData = {
+                //     experiments.map(experiment => ({
+                //         title: experiment.name,
+                //         projectName:project.name,
+                //         id:experiment._id,
+                //         projectId:project._id,
+                //         url: `/dashboard/${project._id}/${experiment._id}`,
+                //     })),
+                // };
+
+                // Add the project data to the response array
+                responseData=(experiments.map(experiment => ({
+                    title: experiment.name,
+                    projectName:project.name,
+                    id:experiment._id,
+                    createdAt:experiment.createdAt,
+                    lastRun:experiment.updatedAt,
+                    projectId:project._id,
+                    url: `/dashboard/${project._id}/${experiment._id}`,
+                })));
+        } 
+
+        console.log(responseData)
+        // Send the response with the data structure
+        console.log("Experiments Data sent!!")
+        return res.status(200).json({ data: responseData });
+
+    } catch (error) {
+        console.error('Error fetching user project experiments:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};

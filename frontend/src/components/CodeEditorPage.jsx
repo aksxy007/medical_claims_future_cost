@@ -1,49 +1,59 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import apiClient from '@/lib/api-client';
 import { useCodeEditor } from '@/hooks/use-code-editor';
 import { useTheme } from 'next-themes';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { FileUploadDialog } from './FileUploader';
 
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
-const CodeEditor= ({projectId,experimentId}) => {
+const CodeEditor= ({projectId,experimentId,setTab}) => {
   console.log("ExperimentID",experimentId)
+  const [isOpenFileUploadDialog,setIsOpenFileUploadDialog] = useState(false)
   const { editorValue, setEditorValue } = useCodeEditor();
   const {theme} = useTheme() 
   const {user} = useAuth()
   const editorTheme = theme==='dark'?'vs-dark':'vs'
+  const {showToast} = useToast()
 
   const fetchDefaultConfig = async () => {
     try {
-      const response = await apiClient.get('/config/default-config');
-      const defaultConfig = response.data.message;
+      const response = await apiClient.post('/config/default-config',{
+        experimentId
+      });
+      const defaultConfig = response.data?.message;
 
-      if (!editorValue) {
-        setEditorValue(JSON.stringify(defaultConfig, null, '\t'));
-      }
+      // if (!editorValue) {
+      setEditorValue(JSON.stringify(defaultConfig, null, '\t'));
+      // }
     } catch (error) {
       console.error('Error in getting config:', error);
     }
   };
 
   useEffect(() => {
+    console.log("Fetching experiment config")
     fetchDefaultConfig();
-  }, []);
+  }, [experimentId]);
 
   const handleEditorTextChange = (newValue) => {
     setEditorValue(newValue || '');
   };
+
+  const handleFileUpload = ()=>{
+    setIsOpenFileUploadDialog(true)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const updatedConfig = JSON.parse(editorValue);
       console.log('Updated config:', updatedConfig);
-
 
       const response = await apiClient.post("/run/trigger-run",{
         runConfig:JSON.stringify(updatedConfig),
@@ -53,23 +63,30 @@ const CodeEditor= ({projectId,experimentId}) => {
 
       })
 
-      const data =response.data
+      const data =response.data.message
+      if(response.status===200){
+        showToast({message:"Triggered experiment",type:"success"})
 
+        setTimeout(()=>{
+          setTab(()=>"dagflow")
+        },501)
+      }
+        
       console.log("Trigger run",data)
       // Make your API call to save the config here
 
     } catch (error) {
       console.error('Error parsing JSON:', error);
+      showToast({message:"Triggered experiment failed",type:"error"})
     }
   };
 
   return (
-    <div className="flex justify-center items-start pt-1 h-full rounded-md">
-      <div className="w-full p-4">
-        <form onSubmit={handleSubmit}>
-          <div className="max-w-screen">
+        <form onSubmit={handleSubmit} className='flex flex-col gap-2 w-full h-full p-4 my-4'>
+          <div className="flex-1 h-[90%] overflow-hidden rounded-md ">
             <Editor
-              height="80vh"
+              height="100%"
+              width="100%"
               defaultLanguage="json"
               value={editorValue}
               onChange={handleEditorTextChange}
@@ -91,17 +108,23 @@ const CodeEditor= ({projectId,experimentId}) => {
             
             />
           </div>
-          <div className="flex justify-end mt-2">
+          <div className="flex h-[10%] justify-end gap-3 mt-2">
             <Button
               type="submit"
-
             >
               Run
             </Button>
+            <Button
+              type="button"
+              variant={"default"}
+              className="bg-customButton dark:bg-customButton dark:text-white hover:dark:text-black"
+              onClick = {handleFileUpload}
+            >
+              Upload Dataset
+            </Button>
           </div>
+          <FileUploadDialog isOpenFileUploadDialog={isOpenFileUploadDialog} setIsOpenFileUploadDialog={setIsOpenFileUploadDialog} experimentId={experimentId}/>
         </form>
-      </div>
-    </div>
   );
 };
 
